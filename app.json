@@ -1,0 +1,12 @@
+{
+  "name": "jellyfinApp",
+  "displayName": "jellyfinApp",
+  "expo": {
+    "name": "jellyfinApp",
+    "slug": "jellyfinApp",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
