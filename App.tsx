@@ -29,6 +29,9 @@ export function getMovies(navigation) {
   const [data, setData] = useState<MovieModel[]>([]);
   const unmounted = useRef(false);
   useEffect(() => {
+    fetch("https://streaming.arthurcargnelli.eu/Playback/BitrateTest?Size=500000&api_key=618ab0c72e18452995c98aa270b8ac75")
+    fetch("https://streaming.arthurcargnelli.eu/Playback/BitrateTest?Size=1000000&api_key=618ab0c72e18452995c98aa270b8ac75")
+    fetch("https://streaming.arthurcargnelli.eu/Playback/BitrateTest?Size=3000000&api_key=618ab0c72e18452995c98aa270b8ac75")
     fetch("https://streaming.arthurcargnelli.eu/Users/30af1f55f41a40e593194710131bf55d/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes=Movie&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId=f137a2dd21bbc1b99aa5c0f6bf02a805&Limit=100&api_key=618ab0c72e18452995c98aa270b8ac75")
     .then( response => {
       if (response.status == 200) {

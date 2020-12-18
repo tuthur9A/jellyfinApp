@@ -19,6 +19,7 @@ export interface MediaSourceModel {
     IgnoreIndex?: boolean,
     GenPtsInput?: boolean,
     SupportsTranscoding?: boolean,
+    TranscodingUrl?: string,
     SupportsDirectStream?: boolean,
     SupportsDirectPlay?: boolean,
     IsInfiniteStream?: boolean,
