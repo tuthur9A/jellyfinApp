@@ -37,7 +37,7 @@ export function getMovie(id: string) {
     const [playback, setPlayBack] = useState<PlaybackModel>()
     useEffect(() => {
         // /f06b18c6-85d3-c205-2b7a-71f9186c3f91/master.m3u8?DeviceId=TW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzgwLjAuMzk4Ny4xNjMgU2FmYXJpLzUzNy4zNnwxNTg3Mzc4Njk1Nzg0&MediaSourceId=f06b18c685d3c2052b7a71f9186c3f91&VideoCodec=h264&AudioCodec=mp3,aac&AudioStreamIndex=1&VideoBitrate=229944986&AudioBitrate=192000&PlaySessionId=311e3a8b5abc44c6a9a1dc636eef5a5d&api_key=5dbc4c73e5084d0d940cd7a43d5eb4d3&SubtitleMethod=Encode&TranscodingMaxAudioChannels=2&RequireAvc=false&Tag=ba3b242ca9a51a483a8fabf742357fa4&SegmentContainer=ts&MinSegments=1&BreakOnNonKeyFrames=True&h264-profile=high,main,baseline,constrainedbaseline,high10&h264-level=51&h264-deinterlace=true&TranscodeReasons=VideoCodecNotSupported
-        fetch('https://streaming.arthurcargnelli.eu/Users/bbfb33db95d74eef8761c63b9dd929cb/Items/' + id + '?api_key=535f213cb7bc4142838e5390270493cb')
+        fetch('https://streaming.arthurcargnelli.eu/Users/d701f60ea1f848329833cf9dbd96b321/Items/' + id + '?api_key=69e93a0fddb043a0b14e3218d0cc622d')
         .then( response => {
             if (response.status == 200) {
                 return response.json()
@@ -47,7 +47,7 @@ export function getMovie(id: string) {
         })
         .then((movieData: MovieModel) => {
             setMovie(movieData)
-            fetch('https://streaming.arthurcargnelli.eu/Items/' + movieData.Id + '/PlaybackInfo?UserId=bbfb33db95d74eef8761c63b9dd929cb&StartTimeTicks=0&IsPlayback=true&AutoOpenLiveStream=true&MediaSourceId=' + movieData.Id + '&MaxStreamingBitrate=3&api_key=535f213cb7bc4142838e5390270493cb')
+            fetch('https://streaming.arthurcargnelli.eu/Items/' + movieData.Id + '/PlaybackInfo?UserId=d701f60ea1f848329833cf9dbd96b321&StartTimeTicks=0&IsPlayback=true&AutoOpenLiveStream=true&MediaSourceId=' + movieData.Id + '&MaxStreamingBitrate=3&api_key=69e93a0fddb043a0b14e3218d0cc622d')
                 .then( response => {
                     if (response.status == 200) {
                         return response.json()
@@ -65,7 +65,7 @@ export function getMovie(id: string) {
                         Static: false,
                         mediaSourceId: playback.MediaSources[0].Id,
                         deviceId: "APPREACTNATIVETEST",
-                        api_key: "535f213cb7bc4142838e5390270493cb"
+                        api_key: "69e93a0fddb043a0b14e3218d0cc622d"
                         };
                 
                         if (playback.MediaSources[0].ETag) {
