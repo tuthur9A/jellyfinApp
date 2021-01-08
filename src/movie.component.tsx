@@ -1,6 +1,6 @@
 import { Video } from 'expo-av';
 import React, {useEffect, useRef, useState } from 'react';
-import { View, Text } from 'react-native'
+import { StyleSheet, View, Text } from 'react-native'
 import { MovieModel } from '../model/ListItems';
 import { PlaybackModel } from '../model/playback';
 import { stringify } from 'qs';
@@ -85,7 +85,7 @@ export function getMovie(id: string) {
         });
     }, [])
     return <View> 
-        <Text>{movie?.Name} </Text>
+        <Text style={styles.h1} >{movie?.Name} </Text>
         {movie && playback && params ? video(movie, playback, params) : <Text> Loading ...</Text> }
         </View>
   }
@@ -93,8 +93,42 @@ export function getMovie(id: string) {
 
 export function Screen2 ({route}){
     return (
-        <View>
+        <View style={styles.background}>
             {getMovie(route.params.itemId)}
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    background: {
+       background: 'linear-gradient(90deg,#000420 0,#06256f 18%,#2b052b 38%,#2b052b 68%,#06256f 81%,#000420)'
+    },
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+      alignItems: 'center',
+      margin: '1%',
+      justifyContent: 'flex-start',
+    },
+    wrapperMovies: {
+      display: "flex",
+      flexDirection: 'row',
+      flexWrap: "wrap",
+      justifyContent: 'space-evenly',
+      alignItems: 'center',
+    },
+    movie: {
+      display: "flex",
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    h1: {
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+    image: {
+      width: 300,
+      height: 200,
+    },
+  });

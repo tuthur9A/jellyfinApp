@@ -76,12 +76,16 @@ export default function App(props) {
 }
 
 const styles = StyleSheet.create({
+  background: {
+    background: 'linear-gradient(90deg,#000420 0,#06256f 18%,#2b052b 38%,#2b052b 68%,#06256f 81%,#000420)'
+ },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
     margin: '1%',
     justifyContent: 'flex-start',
+    background: 'linear-gradient(90deg,#000420 0,#06256f 18%,#2b052b 38%,#2b052b 68%,#06256f 81%,#000420)'
   },
   wrapperMovies: {
     display: "flex",
