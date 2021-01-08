@@ -8,11 +8,15 @@
         "test": "jest"
     },
     "dependencies": {
+        "@eva-design/eva": "^2.0.0",
+        "@jellyfin/client-axios": "^10.7.0",
         "@react-native-community/masked-view": "^0.1.10",
         "@react-navigation/native": "^5.8.10",
         "@react-navigation/stack": "^5.12.8",
+        "@ui-kitten/components": "^5.0.0",
         "expo": "~40.0.0",
         "expo-av": "^8.7.0",
+        "expo-linear-gradient": "~8.4.0",
         "expo-splash-screen": "~0.8.0",
         "expo-updates": "~0.4.0",
         "react": "16.13.1",
@@ -23,6 +27,7 @@
         "react-native-reanimated": "^1.13.2",
         "react-native-safe-area-context": "^3.1.9",
         "react-native-screens": "^2.15.0",
+        "react-native-svg": "^12.1.0",
         "react-native-unimodules": "~0.12.0",
         "react-native-web": "~0.13.12"
     },

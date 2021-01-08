@@ -4,6 +4,8 @@ import { Itemlist, MovieModel } from './model/ListItems';
 import { Screen2 } from './src/movie.component';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { LinearGradient } from 'expo-linear-gradient';
+import { UserProvider } from './src/data/userContext';
 
 const Stack = createStackNavigator();
 
@@ -29,10 +31,10 @@ export function getMovies(navigation) {
   const [data, setData] = useState<MovieModel[]>([]);
   const unmounted = useRef(false);
   useEffect(() => {
-    fetch("https://streaming.arthurcargnelli.eu/Playback/BitrateTest?Size=500000&api_key=69e93a0fddb043a0b14e3218d0cc622d")
-    fetch("https://streaming.arthurcargnelli.eu/Playback/BitrateTest?Size=1000000&api_key=69e93a0fddb043a0b14e3218d0cc622d")
-    fetch("https://streaming.arthurcargnelli.eu/Playback/BitrateTest?Size=3000000&api_key=69e93a0fddb043a0b14e3218d0cc622d")
-    fetch("https://streaming.arthurcargnelli.eu/Users/bbfb33db95d74eef8761c63b9dd929cb/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes=Movie&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId=db4c1708cbb5dd1676284a40f2950aba&Limit=100&api_key=69e93a0fddb043a0b14e3218d0cc622d")
+    fetch("https://streaming.arthurcargnelli.eu/Playback/BitrateTest?Size=500000&api_key=b1bdd227190848b1a49b166908614f71")
+    fetch("https://streaming.arthurcargnelli.eu/Playback/BitrateTest?Size=1000000&api_key=b1bdd227190848b1a49b166908614f71")
+    fetch("https://streaming.arthurcargnelli.eu/Playback/BitrateTest?Size=3000000&api_key=b1bdd227190848b1a49b166908614f71")
+    fetch("https://streaming.arthurcargnelli.eu/Users/bbfb33db95d74eef8761c63b9dd929cb/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes=Movie&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId=db4c1708cbb5dd1676284a40f2950aba&Limit=100&api_key=b1bdd227190848b1a49b166908614f71")
     .then( response => {
       if (response.status == 200) {
         return response.json()
@@ -50,42 +52,65 @@ function Screen1({ navigation }) {
   const Movies = getMovies(navigation)
   return (
       <View style={styles.container}>
+        <LinearGradient
+        // Background Linear Gradient
+        colors={['#000420', '#06256f', '#2b052b', '#06256f', '#000420']}
+        style={styles.background}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        />
         <Text style={styles.h1}>JellyFin App !</Text>
         <ScrollView>{Movies}</ScrollView>
       </View>
   );
 }
 
-export default function App(props) {
+function App(props) {
   return (
     <NavigationContainer>
         <Stack.Navigator>
             <Stack.Screen
-              name="Home"
+              name= "Home"
               component={Screen1}
-              options={{ title: 'Home' }}
+              options={{ title: 'Home',
+              headerTransparent: true,
+              headerTitleStyle: (styles.title)}}
             />
             <Stack.Screen
               name="Test"
               component={Screen2}
-              options={{ title: 'Test' }}
+              options={{ title: 'Test',
+              headerTransparent: true,
+              headerTitleStyle: (styles.title)}}
             />
           </Stack.Navigator>  
     </NavigationContainer>
   );
 }
 
+const ContextContainer = () => (
+  <UserProvider>
+    <App />
+  </UserProvider>
+);
+
 const styles = StyleSheet.create({
   background: {
-    background: 'linear-gradient(90deg,#000420 0,#06256f 18%,#2b052b 38%,#2b052b 68%,#06256f 81%,#000420)'
- },
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 300,
+  },
+  title: {
+    color: '#ffffff'
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
     margin: '1%',
     justifyContent: 'flex-start',
-    background: 'linear-gradient(90deg,#000420 0,#06256f 18%,#2b052b 38%,#2b052b 68%,#06256f 81%,#000420)'
   },
   wrapperMovies: {
     display: "flex",
@@ -109,3 +134,5 @@ const styles = StyleSheet.create({
     height: 200,
   },
 });
+
+export default ContextContainer;

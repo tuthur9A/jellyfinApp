@@ -1,11 +1,27 @@
-import React, {createContext} from 'react';
+import React, {createContext, useState} from 'react';
 
-const user = createContext({
+export const UserContext = createContext({
     user: {},
-    setUser: () => {},
-    setUserApi: () => {},
+    setUser: (...user) => {},
+    setUserApiKey: (apiKey: string) => {},
 });
 
-const userProvider = ({children}) => {
+export const UserProvider = ({children}) => {
+    const [user, setUser] = useState({});
 
+    const setUserApiKey = (apiKey: string) =>
+        setUser({ ...user, apiKey: apiKey });
+
+
+  return (
+    <UserContext.Provider
+      value={{
+        user,
+        setUser,
+        setUserApiKey,
+      }}
+    >
+      {children}
+    </UserContext.Provider>
+  );
 }
