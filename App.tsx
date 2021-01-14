@@ -5,12 +5,13 @@ import { Screen2 } from './src/movie.component';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { UserProvider } from './src/data/userContext';
+import { UserContext, UserProvider } from './src/data/userContext';
 import axios, {AxiosInstance, AxiosRequestConfig} from 'axios';
 import * as jellyfinApi from '@jellyfin/client-axios';
 import { Configuration } from '@jellyfin/client-axios';
 import { BaseAPI } from '@jellyfin/client-axios/dist/base';
 import  {v4 as uuidv4} from 'uuid';
+import { useContext } from 'react';
 
 
 const Stack = createStackNavigator();
@@ -24,14 +25,19 @@ const config: AxiosRequestConfig = {
 const client: AxiosInstance = axios.create(config);
 
 
-async function authent() {
-  const config = new Configuration();
-  var userApi = new jellyfinApi.UserApi(config, 'https://streaming.arthurcargnelli.eu', client);
-  var result = await userApi.authenticateUserByName({
-    authenticateUserByName: {Pw: "261113",
-    Username: 'tuthur9'} as jellyfinApi.AuthenticateUserByName
-  } as jellyfinApi.UserApiAuthenticateUserByNameRequest);
-  console.log(result);
+function authent(userContext) {
+    useEffect(() => {
+    const config = new Configuration();
+    var userApi = new jellyfinApi.UserApi(config, 'https://streaming.arthurcargnelli.eu', client);
+    userApi.authenticateUserByName({
+      authenticateUserByName: {Pw: "261113",
+      Username: 'tuthur9'} as jellyfinApi.AuthenticateUserByName
+    } as jellyfinApi.UserApiAuthenticateUserByNameRequest)
+    .then(result => {
+      console.log(result);
+      userContext.setUser(result.data);
+    });
+  }, [])
 }
 
 export function movie(props: MovieModel, navigation) {
@@ -53,18 +59,24 @@ export function movie(props: MovieModel, navigation) {
 
 
 export function getMovies(navigation) {
+  const user = useContext(UserContext);
+  console.log(user.user);
   const [data, setData] = useState<MovieModel[]>([]);
   const unmounted = useRef(false);
   useEffect(() => {
-    fetch("https://streaming.arthurcargnelli.eu/Users/bbfb33db95d74eef8761c63b9dd929cb/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes=Movie&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId=db4c1708cbb5dd1676284a40f2950aba&Limit=100&api_key=da7183f9064948a0b735cf0d2db10d2c")
+    fetch("https://streaming.arthurcargnelli.eu/Users/bbfb33db95d74eef8761c63b9dd929cb/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes=Movie&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId=db4c1708cbb5dd1676284a40f2950aba&Limit=100&api_key="+ user.user.AccessToken)
     .then( response => {
       if (response.status == 200) {
         return response.json()
       } else {
         console.error("Bad response status: ", response.status);
+        throw Error(response.statusText);
       }
     })
-    .then((movieData: Itemlist<MovieModel>) => setData(movieData.Items));
+    .then((movieData: Itemlist<MovieModel>) => setData(movieData?.Items))
+    .catch(() => {
+      console.error("Error during movies fetch.")
+    });
     return () => { unmounted.current = true };
   }, [])
   return <View  style={styles.wrapperMovies}>
@@ -96,27 +108,36 @@ function Screen1({ navigation }) {
 }
 
 function App(props) {
-  authent();
-  return (
-    <NavigationContainer>
-        <Stack.Navigator>
-            <Stack.Screen
-              name= "Home"
-              component={Screen1}
-              options={{ title: 'Home',
-              headerTransparent: true,
-              headerTitleStyle: (styles.title)}}
-            />
-            <Stack.Screen
-              name="Test"
-              component={Screen2}
-              options={{ title: 'Test',
-              headerTransparent: true,
-              headerTitleStyle: (styles.title)}}
-            />
-          </Stack.Navigator>  
-    </NavigationContainer>
-  );
+  const userContext = useContext(UserContext);
+  authent(userContext)
+  if (userContext.user.AccessToken) {
+    return (
+      <NavigationContainer>
+          <Stack.Navigator>
+              <Stack.Screen
+                name= "Home"
+                component={Screen1}
+                options={{ title: 'Home',
+                headerTransparent: true,
+                headerTitleStyle: (styles.title)}}
+              />
+              <Stack.Screen
+                name="Test"
+                component={Screen2}
+                options={{ title: 'Test',
+                headerTransparent: true,
+                headerTitleStyle: (styles.title)}}
+              />
+            </Stack.Navigator>  
+      </NavigationContainer>
+    )
+  } else {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.h1}>No User!</Text>
+      </View>
+    )
+  };
 }
 
 const ContextContainer = () => (
