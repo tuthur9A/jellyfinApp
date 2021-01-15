@@ -155,6 +155,10 @@ export function getMovies(navigation) {
 }
 
 function Screen1({ navigation }) {
+  const userContext = useContext(UserContext);
+  useEffect(() => {
+    userContext.setPageTitle('Home')
+  }, [])
   const Movies = getMovies(navigation)
   return (
       <View style={styles.container}>
@@ -165,8 +169,7 @@ function Screen1({ navigation }) {
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         />
-        <Text style={styles.h1}>JellyFin App !</Text>
-        <ScrollView>{Movies}</ScrollView>
+        <ScrollView style={styles.listMovies}>{Movies}</ScrollView>
       </View>
   );
 }
@@ -207,14 +210,14 @@ function App(props) {
               <Stack.Screen
                 name= "Home"
                 component={Screen1}
-                options={{ title: 'Home',
+                options={{ title: userContext.PageTitle,
                 headerTransparent: true,
                 headerTitleStyle: (styles.title)}}
               />
               <Stack.Screen
                 name="Test"
                 component={Screen2}
-                options={{ title: 'Test',
+                options={{ title: userContext.PageTitle,
                 headerTransparent: true,
                 headerTitleStyle: (styles.title)}}
               />
@@ -295,13 +298,17 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   title: {
-    color: '#ffffff'
+    color: '#ffffff',
+    maxWidth: 150,
+  },
+  listMovies: {
+    margin: '5%',
+    marginTop: '15%',
   },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
-    margin: '1%',
     justifyContent: 'center',
   },
   wrapperMovies: {
@@ -316,13 +323,14 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
+    margin: '3%',
   },
   h1: {
     fontSize: 24,
     fontWeight: 'bold',
   },
   image: {
-    width: 300,
+    width: 150,
     height: 200,
   },
 });
