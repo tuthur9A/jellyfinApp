@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View, Image, ScrollView, Button, Pressable} from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, Pressable} from 'react-native';
 import { Itemlist, MovieModel } from './model/ListItems';
 import { Screen2 } from './src/movie.component';
 import { NavigationContainer } from '@react-navigation/native';
@@ -9,9 +9,10 @@ import { UserContext, UserProvider } from './src/data/userContext';
 import axios, {AxiosInstance, AxiosRequestConfig} from 'axios';
 import * as jellyfinApi from '@jellyfin/client-axios';
 import { Configuration } from '@jellyfin/client-axios';
-import { BaseAPI } from '@jellyfin/client-axios/dist/base';
 import  {v4 as uuidv4} from 'uuid';
 import { useContext } from 'react';
+import * as eva from '@eva-design/eva';
+import { ApplicationProvider, Input, Button } from '@ui-kitten/components';
 
 
 const Stack = createStackNavigator();
@@ -25,19 +26,17 @@ const config: AxiosRequestConfig = {
 const client: AxiosInstance = axios.create(config);
 
 
-function authent(userContext) {
-    useEffect(() => {
+function authent(username: string, password: string, url: string, userContext) {
     const config = new Configuration();
-    var userApi = new jellyfinApi.UserApi(config, 'https://streaming.arthurcargnelli.eu', client);
+    var userApi = new jellyfinApi.UserApi(config, url, client);
     userApi.authenticateUserByName({
-      authenticateUserByName: {Pw: "261113",
-      Username: 'tuthur9'} as jellyfinApi.AuthenticateUserByName
+      authenticateUserByName: {Pw: password,
+      Username: username} as jellyfinApi.AuthenticateUserByName
     } as jellyfinApi.UserApiAuthenticateUserByNameRequest)
     .then(result => {
-      console.log(result);
-      userContext.setUser(result.data);
+      userContext.setUser(result.data.User);
+      userContext.setApiKey(result.data.AccessToken);
     });
-  }, [])
 }
 
 export function movie(props: MovieModel, navigation) {
@@ -59,12 +58,11 @@ export function movie(props: MovieModel, navigation) {
 
 
 export function getMovies(navigation) {
-  const user = useContext(UserContext);
-  console.log(user.user);
+  const userContext = useContext(UserContext);
   const [data, setData] = useState<MovieModel[]>([]);
   const unmounted = useRef(false);
   useEffect(() => {
-    fetch("https://streaming.arthurcargnelli.eu/Users/bbfb33db95d74eef8761c63b9dd929cb/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes=Movie&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId=db4c1708cbb5dd1676284a40f2950aba&Limit=100&api_key="+ user.user.AccessToken)
+    fetch("https://streaming.arthurcargnelli.eu/Users/bbfb33db95d74eef8761c63b9dd929cb/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes=Movie&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId=db4c1708cbb5dd1676284a40f2950aba&Limit=100&api_key="+ userContext.apiKey)
     .then( response => {
       if (response.status == 200) {
         return response.json()
@@ -109,8 +107,7 @@ function Screen1({ navigation }) {
 
 function App(props) {
   const userContext = useContext(UserContext);
-  authent(userContext)
-  if (userContext.user.AccessToken) {
+  if (Object.keys(userContext.apiKey).length !== 0 && userContext.apiKey.constructor !== Object) {
     return (
       <NavigationContainer>
           <Stack.Navigator>
@@ -132,9 +129,46 @@ function App(props) {
       </NavigationContainer>
     )
   } else {
+    const [userName, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [url, setURL] = useState("");
     return (
       <View style={styles.container}>
-        <Text style={styles.h1}>No User!</Text>
+          <Text  style={{ textAlign: "center" }}>
+            Authentication
+          </Text>
+          <Text>Server URL</Text>
+          <Input
+            value={url}
+            onChangeText={(text) => setURL(text)}
+            placeholder="https://monsite.monsite/"
+          />
+          <Text>UserName</Text>
+          <Input
+            value={userName}
+            onChangeText={(text) => setUsername(text)}
+            placeholder="USERNAME"
+          />
+          <Text>Password</Text>
+          <Input
+            value={password}
+            onChangeText={(text) => setPassword(text)}
+            placeholder="password"
+            secureTextEntry
+          />
+          <Button
+            style={{ flex: 0, marginLeft: 8 }}
+            onPress={() =>
+             authent(
+                    userName,
+                    password,
+                    url,
+                    userContext
+                  )
+            }
+          >
+             Connexion
+          </Button>
       </View>
     )
   };
@@ -142,14 +176,16 @@ function App(props) {
 
 const ContextContainer = () => (
   <UserProvider>
-    <LinearGradient
-        // Background Linear Gradient
-        colors={['#000420', '#06256f', '#2b052b', '#06256f', '#000420']}
-        style={styles.background}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 1, y: 0.5 }}
-        />
-    <App />
+    <ApplicationProvider {...eva} theme={eva.light}>
+      <LinearGradient
+          // Background Linear Gradient
+          colors={['#000420', '#06256f', '#2b052b', '#06256f', '#000420']}
+          style={styles.background}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          />
+      <App />
+    </ApplicationProvider>
   </UserProvider>
 );
 

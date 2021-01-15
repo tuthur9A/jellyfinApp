@@ -34,6 +34,7 @@
     },
     "devDependencies": {
         "@babel/core": "~7.9.0",
+        "@expo/webpack-config": "^0.12.53",
         "@types/qs": "^6.9.5",
         "@types/react": "~16.9.35",
         "@types/react-dom": "~16.9.8",
