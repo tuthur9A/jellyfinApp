@@ -8,6 +8,8 @@ export interface MovieModel {
     Name: string,
     BackdropImageTags: string[],
     Id: string,
+    Overview: string,
+    ProductionYear: number,
     UserData: UserDataModel
 }
 

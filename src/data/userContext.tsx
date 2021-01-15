@@ -5,17 +5,21 @@ export const UserContext = createContext({
     user: {} as jellyfinApi.UserDto,
     apiKey: null,
     TokenNotification: null,
+    PageTitle: null,
     setUser: (...user) => {},
     setApiKey: (...ApiKey) => {},
     setTokenNotification: (...TokenNotification) => {},
+    setPageTitle: (...PageTitle) => {},
 });
 
 export const UserProvider = ({children}) => {
     const [user, setUser] = useState({});
     const [apiKey, setApiKey] = useState({});
     const [TokenNotification, setTokenNotification] = useState({});
+    const [PageTitle, setPageTitle] = useState({});
     useEffect(() => {
       // async storage get item
+      setPageTitle('Home');
     }, [])
 
   return (
@@ -24,9 +28,11 @@ export const UserProvider = ({children}) => {
         user,
         apiKey,
         TokenNotification,
+        PageTitle,
         setUser,
         setApiKey,
-        setTokenNotification
+        setTokenNotification,
+        setPageTitle
       }}
     >
       {children}

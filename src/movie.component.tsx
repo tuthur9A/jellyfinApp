@@ -1,6 +1,6 @@
 import { Video } from 'expo-av';
-import React, {useContext, useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, Text } from 'react-native'
+import React, {useContext, useEffect, useState } from 'react';
+import { StyleSheet, View, Image, Text, ScrollView } from 'react-native'
 import { MovieModel } from '../model/ListItems';
 import { PlaybackModel } from '../model/playback';
 import { stringify } from 'qs';
@@ -15,7 +15,7 @@ function ticksToMs(ticks: number | null | undefined): number {
 }
 
 export function video(movie: MovieModel, playback: PlaybackModel, params: string) {
-    console.log(params)
+    console.log(movie)
     let containers = playback.MediaSources[0]?.Container.split(',');
         return <Video
                 source= {{uri: `https://streaming.arthurcargnelli.eu/Videos/${playback?.MediaSources[0].Id}/stream.${containers[0] === 'mov' ? containers[1] : containers[0]}?${params}`}}
@@ -51,6 +51,7 @@ export function getMovie(id: string) {
         })
         .then((movieData: MovieModel) => {
             setMovie(movieData)
+            userContext.setPageTitle(movieData.Name);
             fetch('https://streaming.arthurcargnelli.eu/Items/' + movieData.Id + '/PlaybackInfo?UserId='+userContext.user.Id+'&StartTimeTicks=0&IsPlayback=true&AutoOpenLiveStream=true&MediaSourceId=' + movieData.Id + '&MaxStreamingBitrate=3&api_key='+userContext.apiKey)
                 .then( response => {
                     if (response.status == 200) {
@@ -87,16 +88,24 @@ export function getMovie(id: string) {
                 });
         });
     }, [])
-    return <View> 
-        <Text style={styles.h1} >{movie?.Name} </Text>
-        {movie && playback && params ? video(movie, playback, params) : <Text> Loading ...</Text> }
-        </View>
+    return <ScrollView> 
+        <View style={styles.movie}> 
+          <View style={styles.informationMovie}> 
+            <Image source={{ uri: 'https://streaming.arthurcargnelli.eu/Items/' + movie?.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ movie?.BackdropImageTags[0] +'&quality=90' }} style={styles.image} />
+              <View style={styles.informationMovieText}> 
+                <Text style={styles.h2} >{movie?.Overview} </Text>
+                <Text style={styles.h3} >{movie?.ProductionYear} </Text>
+              </View>  
+          </View>  
+          {movie && playback && params ? video(movie, playback, params) : <Text> Loading ...</Text> }
+        </View>  
+        </ScrollView>
   }
 
 
 export function Screen2 ({route}){
     return (
-        <View>
+        <View style={styles.container}>
           <LinearGradient
             // Background Linear Gradient
             colors={['#000420', '#06256f', '#2b052b', '#06256f', '#000420']}
@@ -114,8 +123,6 @@ const styles = StyleSheet.create({
       flex: 1,
       backgroundColor: '#fff',
       alignItems: 'center',
-      margin: '1%',
-      justifyContent: 'flex-start',
     },
     background: {
       position: 'absolute',
@@ -136,13 +143,39 @@ const styles = StyleSheet.create({
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
+      margin: '3%',
     },
     h1: {
       fontSize: 24,
       fontWeight: 'bold',
+      color: '#ffffff',
+    },
+    h2: {
+      fontSize: 15,
+      color: '#ffffff',
+    },
+    h3: {
+      fontSize: 13,
+      color: '#ffffff',
+    },
+    informationMovie: {
+      marginTop: '15%',
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    informationMovieText: {
+      display: 'flex',
+      flexDirection: 'column',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      alignItems: 'center',
+      maxWidth: '68%'
     },
     image: {
-      width: 300,
+      width: 135,
       height: 200,
+      margin: '3%'
     },
   });
