@@ -15,6 +15,7 @@ import { ApplicationProvider, Input, Button } from '@ui-kitten/components';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants'
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const Stack = createStackNavigator();
@@ -96,6 +97,7 @@ function authent(username: string, password: string, url: string, userContext) {
     .then(result => {
       console.log(result);
         if (result) {
+          AsyncStorage.setItem('@access_token', result.AccessToken)
           userContext.setUser(result.User);
           userContext.setApiKey(result.AccessToken);
         }
@@ -200,6 +202,130 @@ function App(props) {
     };
   }, []);
   const userContext = useContext(UserContext);
+  const getData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('@access_token')
+      if(value !== null) {
+        return (
+          <NavigationContainer>
+              <Stack.Navigator>
+                  <Stack.Screen
+                    name= "Home"
+                    component={Screen1}
+                    options={{ title: 'Home',
+                    headerTransparent: true,
+                    headerTitleStyle: (styles.title)}}
+                  />
+                  <Stack.Screen
+                    name="Test"
+                    component={Screen2}
+                    options={{ title: 'Test',
+                    headerTransparent: true,
+                    headerTitleStyle: (styles.title)}}
+                  />
+                </Stack.Navigator>  
+          </NavigationContainer>
+        )
+      } else {
+        return (
+          <View style={styles.container}>
+              <Text  style={{ textAlign: "center" }}>
+                Authentication
+              </Text>
+              <Text>Server URL</Text>
+              <Input
+                value={url}
+                onChangeText={(text) => setURL(text)}
+                placeholder="https://monsite.monsite/"
+              />
+              <Text>UserName</Text>
+              <Input
+                value={userName}
+                onChangeText={(text) => setUsername(text)}
+                placeholder="USERNAME"
+              />
+              <Text>Password</Text>
+              <Input
+                value={password}
+                onChangeText={(text) => setPassword(text)}
+                placeholder="password"
+                secureTextEntry
+              />
+              <Button
+                style={{ flex: 0, marginLeft: 8 }}
+                onPress={() =>
+                  authent(
+                        userName,
+                        password,
+                        url,
+                        userContext
+                      )
+                }
+              >
+                  Connexion
+              </Button>
+              <Button
+                onPress={async () => {
+                  await sendPushNotification(expoPushToken);
+                }}
+                >
+                Press to Send Notification
+              </Button>
+          </View>
+        )
+      };
+    } catch(e) {
+      // error reading value
+      return (
+        <View style={styles.container}>
+            <Text  style={{ textAlign: "center" }}>
+              Authentication
+            </Text>
+            <Text>Server URL</Text>
+            <Input
+              value={url}
+              onChangeText={(text) => setURL(text)}
+              placeholder="https://monsite.monsite/"
+            />
+            <Text>UserName</Text>
+            <Input
+              value={userName}
+              onChangeText={(text) => setUsername(text)}
+              placeholder="USERNAME"
+            />
+            <Text>Password</Text>
+            <Input
+              value={password}
+              onChangeText={(text) => setPassword(text)}
+              placeholder="password"
+              secureTextEntry
+            />
+            <Button
+              style={{ flex: 0, marginLeft: 8 }}
+              onPress={() =>
+                authent(
+                      userName,
+                      password,
+                      url,
+                      userContext
+                    )
+              }
+            >
+                Connexion
+            </Button>
+            <Button
+              onPress={async () => {
+                await sendPushNotification(expoPushToken);
+              }}
+              >
+              Press to Send Notification
+            </Button>
+        </View>
+      )
+    };
+  }
+
+  /*
   if (Object.keys(userContext.apiKey).length !== 0 && userContext.apiKey.constructor !== Object) {
     return (
       <NavigationContainer>
@@ -269,6 +395,7 @@ function App(props) {
       </View>
     )
   };
+*/
 }
 
 const ContextContainer = () => (
