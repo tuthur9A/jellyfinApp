@@ -8,8 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { UserContext, UserProvider } from './src/data/userContext';
 import axios, {AxiosInstance, AxiosRequestConfig} from 'axios';
 import * as jellyfinApi from '@jellyfin/client-axios';
-import { Configuration } from '@jellyfin/client-axios';
-import  {v4 as uuidv4} from 'uuid';
+import  * as uuid from 'react-native-uuid';
 import { useContext } from 'react';
 import * as eva from '@eva-design/eva';
 import { ApplicationProvider, Input, Button } from '@ui-kitten/components';
@@ -17,7 +16,8 @@ import { ApplicationProvider, Input, Button } from '@ui-kitten/components';
 
 const Stack = createStackNavigator();
 
-const deviceId = uuidv4();
+const deviceId = uuid.v4();
+console.log(deviceId)
 const config: AxiosRequestConfig = {
   baseURL: 'https://streaming.arthurcargnelli.eu',
   headers: {'X-Emby-Authorization': 'MediaBrowser Client="Jellyfin App", Device="JellyfinApp", DeviceId="'+ deviceId +'", Version="10.6.4"',
@@ -27,16 +27,20 @@ const client: AxiosInstance = axios.create(config);
 
 
 function authent(username: string, password: string, url: string, userContext) {
-    const config = new Configuration();
-    var userApi = new jellyfinApi.UserApi(config, url, client);
-    userApi.authenticateUserByName({
-      authenticateUserByName: {Pw: password,
-      Username: username} as jellyfinApi.AuthenticateUserByName
-    } as jellyfinApi.UserApiAuthenticateUserByNameRequest)
+    fetch(url+'/Users/AuthenticateByName', {
+      method: 'POST', headers: config.headers, body: JSON.stringify({Pw: password, Username: username})
+    })
+    .then(response => response.json())
     .then(result => {
-      userContext.setUser(result.data.User);
-      userContext.setApiKey(result.data.AccessToken);
-    });
+        console.log(result)
+        if (result) {
+          userContext.setUser(result.User);
+          userContext.setApiKey(result.AccessToken);
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      })
 }
 
 export function movie(props: MovieModel, navigation) {

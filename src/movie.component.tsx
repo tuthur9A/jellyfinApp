@@ -69,7 +69,7 @@ export function getMovie(id: string) {
                         Static: false,
                         mediaSourceId: playback.MediaSources[0].Id,
                         deviceId: "APPREACTNATIVETEST",
-                        api_key: "da7183f9064948a0b735cf0d2db10d2c"
+                        api_key: userContext.apiKey
                         };
                 
                         if (playback.MediaSources[0].ETag) {

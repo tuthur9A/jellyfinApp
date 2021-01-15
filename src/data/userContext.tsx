@@ -1,4 +1,4 @@
-import React, {createContext, useState} from 'react';
+import React, {createContext, useEffect, useState} from 'react';
 import * as jellyfinApi from '@jellyfin/client-axios';
 
 export const UserContext = createContext({
@@ -11,6 +11,9 @@ export const UserContext = createContext({
 export const UserProvider = ({children}) => {
     const [user, setUser] = useState({});
     const [apiKey, setApiKey] = useState({});
+    useEffect(() => {
+      // async storage get item
+    }, [])
 
   return (
     <UserContext.Provider

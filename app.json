@@ -9,7 +9,8 @@
       "**/*"
     ],
     "android": {
-      "package": "com.tuthur9.jellyfinApp"
+      "package": "com.tuthur9.jellyfinApp",
+      "useNextNotificationsApi": true
     }
   }
 }
