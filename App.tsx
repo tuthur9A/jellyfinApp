@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View, Image, ScrollView, Button, Pressable} from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, Pressable} from 'react-native';
 import { Itemlist, MovieModel } from './model/ListItems';
 import { Screen2 } from './src/movie.component';
 import { NavigationContainer } from '@react-navigation/native';
@@ -8,15 +8,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { UserContext, UserProvider } from './src/data/userContext';
 import axios, {AxiosInstance, AxiosRequestConfig} from 'axios';
 import * as jellyfinApi from '@jellyfin/client-axios';
-import { Configuration } from '@jellyfin/client-axios';
-import { BaseAPI } from '@jellyfin/client-axios/dist/base';
-import  {v4 as uuidv4} from 'uuid';
+import  * as uuid from 'react-native-uuid';
 import { useContext } from 'react';
+import * as eva from '@eva-design/eva';
+import { ApplicationProvider, Input, Button } from '@ui-kitten/components';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants'
+import { Platform } from 'react-native';
 
 
 const Stack = createStackNavigator();
 
-const deviceId = uuidv4();
+const deviceId = uuid.v4();
 const config: AxiosRequestConfig = {
   baseURL: 'https://streaming.arthurcargnelli.eu',
   headers: {'X-Emby-Authorization': 'MediaBrowser Client="Jellyfin App", Device="JellyfinApp", DeviceId="'+ deviceId +'", Version="10.6.4"',
@@ -24,20 +27,82 @@ const config: AxiosRequestConfig = {
 };
 const client: AxiosInstance = axios.create(config);
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
-function authent(userContext) {
-    useEffect(() => {
-    const config = new Configuration();
-    var userApi = new jellyfinApi.UserApi(config, 'https://streaming.arthurcargnelli.eu', client);
-    userApi.authenticateUserByName({
-      authenticateUserByName: {Pw: "261113",
-      Username: 'tuthur9'} as jellyfinApi.AuthenticateUserByName
-    } as jellyfinApi.UserApiAuthenticateUserByNameRequest)
+async function registerForPushNotificationsAsync() {
+  let token;
+  if (Constants.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') {
+      alert('Failed to get push token for push notification!');
+      return;
+    }
+    token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log(token);
+  } else {
+    alert('Must use physical device for Push Notifications');
+  }
+
+  if (Platform.OS === 'android') {
+    Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF231F7C',
+    });
+  }
+
+  return token;
+}
+
+  // Can use this function below, OR use Expo's Push Notification Tool-> https://expo.io/notifications
+async function sendPushNotification(expoPushToken) {
+  console.log('SEND NOTIFICATION')
+  const message = {
+    to: expoPushToken,
+    sound: 'default',
+    title: 'Original Title',
+    body: 'And here is the body!',
+    data: { data: 'goes here' },
+  };
+
+  await fetch('https://exp.host/--/api/v2/push/send', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Accept-encoding': 'gzip, deflate',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(message),
+  });
+}
+
+function authent(username: string, password: string, url: string, userContext) {
+    fetch(url+'/Users/AuthenticateByName', {
+      method: 'POST', headers: config.headers, body: JSON.stringify({Pw: password, Username: username})
+    })
+    .then(response => response.json())
     .then(result => {
       console.log(result);
-      userContext.setUser(result.data);
-    });
-  }, [])
+        if (result) {
+          userContext.setUser(result.User);
+          userContext.setApiKey(result.AccessToken);
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      })
 }
 
 export function movie(props: MovieModel, navigation) {
@@ -59,12 +124,11 @@ export function movie(props: MovieModel, navigation) {
 
 
 export function getMovies(navigation) {
-  const user = useContext(UserContext);
-  console.log(user.user);
+  const userContext = useContext(UserContext);
   const [data, setData] = useState<MovieModel[]>([]);
   const unmounted = useRef(false);
   useEffect(() => {
-    fetch("https://streaming.arthurcargnelli.eu/Users/bbfb33db95d74eef8761c63b9dd929cb/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes=Movie&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId=db4c1708cbb5dd1676284a40f2950aba&Limit=100&api_key="+ user.user.AccessToken)
+    fetch("https://streaming.arthurcargnelli.eu/Users/bbfb33db95d74eef8761c63b9dd929cb/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes=Movie&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId=db4c1708cbb5dd1676284a40f2950aba&Limit=100&api_key="+ userContext.apiKey)
     .then( response => {
       if (response.status == 200) {
         return response.json()
@@ -108,9 +172,35 @@ function Screen1({ navigation }) {
 }
 
 function App(props) {
+  const [expoPushToken, setExpoPushToken] = useState('');
+  const [notification, setNotification] = useState(false);
+  const [userName, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [url, setURL] = useState("");
+  const notificationListener = useRef();
+  const responseListener = useRef();
+  useEffect(() => {
+    registerForPushNotificationsAsync()
+    .then(token => {
+        setExpoPushToken(token)
+      });
+
+    // This listener is fired whenever a notification is received while the app is foregrounded
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      setNotification(notification);
+    });
+
+    // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log(response);
+    });
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener);
+      Notifications.removeNotificationSubscription(responseListener);
+    };
+  }, []);
   const userContext = useContext(UserContext);
-  authent(userContext)
-  if (userContext.user.AccessToken) {
+  if (Object.keys(userContext.apiKey).length !== 0 && userContext.apiKey.constructor !== Object) {
     return (
       <NavigationContainer>
           <Stack.Navigator>
@@ -134,7 +224,48 @@ function App(props) {
   } else {
     return (
       <View style={styles.container}>
-        <Text style={styles.h1}>No User!</Text>
+          <Text  style={{ textAlign: "center" }}>
+            Authentication
+          </Text>
+          <Text>Server URL</Text>
+          <Input
+            value={url}
+            onChangeText={(text) => setURL(text)}
+            placeholder="https://monsite.monsite/"
+          />
+          <Text>UserName</Text>
+          <Input
+            value={userName}
+            onChangeText={(text) => setUsername(text)}
+            placeholder="USERNAME"
+          />
+          <Text>Password</Text>
+          <Input
+            value={password}
+            onChangeText={(text) => setPassword(text)}
+            placeholder="password"
+            secureTextEntry
+          />
+          <Button
+            style={{ flex: 0, marginLeft: 8 }}
+            onPress={() =>
+             authent(
+                    userName,
+                    password,
+                    url,
+                    userContext
+                  )
+            }
+          >
+             Connexion
+          </Button>
+          <Button
+            onPress={async () => {
+              await sendPushNotification(expoPushToken);
+            }}
+            >
+            Press to Send Notification
+         </Button>
       </View>
     )
   };
@@ -142,14 +273,16 @@ function App(props) {
 
 const ContextContainer = () => (
   <UserProvider>
-    <LinearGradient
-        // Background Linear Gradient
-        colors={['#000420', '#06256f', '#2b052b', '#06256f', '#000420']}
-        style={styles.background}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 1, y: 0.5 }}
-        />
-    <App />
+    <ApplicationProvider {...eva} theme={eva.light}>
+      <LinearGradient
+          // Background Linear Gradient
+          colors={['#000420', '#06256f', '#2b052b', '#06256f', '#000420']}
+          style={styles.background}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          />
+      <App />
+    </ApplicationProvider>
   </UserProvider>
 );
 
@@ -169,7 +302,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     margin: '1%',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
   wrapperMovies: {
     display: "flex",
