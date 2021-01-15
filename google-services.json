@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "195516989590",
+    "firebase_url": "https://jellyfinapp-default-rtdb.firebaseio.com",
+    "project_id": "jellyfinapp",
+    "storage_bucket": "jellyfinapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:195516989590:android:aa62c296e9d8279362c2b7",
+        "android_client_info": {
+          "package_name": "com.tuthur9.jellyfinApp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "195516989590-158mapc883v443q9qfe8njn170rts04s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBh5scVOtE91GvIlAV883V_7EIN_gYektE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "195516989590-158mapc883v443q9qfe8njn170rts04s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

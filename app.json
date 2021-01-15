@@ -10,7 +10,8 @@
     ],
     "android": {
       "package": "com.tuthur9.jellyfinApp",
-      "useNextNotificationsApi": true
+      "useNextNotificationsApi": true,
+      "googleServicesFile": "./google-services.json"
     }
   }
 }
