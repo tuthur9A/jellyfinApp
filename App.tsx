@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View, Image, ScrollView, Pressable} from 'react-native';
-import { Itemlist, MovieModel } from './model/ListItems';
+import { Itemlist } from './model/ListItems';
 import { Screen2 } from './src/movie.component';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -49,7 +49,6 @@ async function registerForPushNotificationsAsync() {
       return;
     }
     token = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log(token);
   } else {
     alert('Must use physical device for Push Notifications');
   }
@@ -68,7 +67,6 @@ async function registerForPushNotificationsAsync() {
 
   // Can use this function below, OR use Expo's Push Notification Tool-> https://expo.io/notifications
 async function sendPushNotification(expoPushToken) {
-  console.log('SEND NOTIFICATION')
   const message = {
     to: expoPushToken,
     sound: 'default',
@@ -94,10 +92,11 @@ function authent(username: string, password: string, url: string, userContext) {
     })
     .then(response => response.json())
     .then(result => {
-      console.log(result);
         if (result) {
+          config.headers['X-Emby-Authorization'] = config.headers['X-Emby-Authorization'] + ',Token="'+ result.AccessToken +'"'
           userContext.setUser(result.User);
           userContext.setApiKey(result.AccessToken);
+          userContext.setHeaders(config.headers);
         }
       })
       .catch(error => {
@@ -105,11 +104,28 @@ function authent(username: string, password: string, url: string, userContext) {
       })
 }
 
-export function movie(props: MovieModel, navigation) {
-  const url = 'https://streaming.arthurcargnelli.eu/Items/' + props.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ props.BackdropImageTags[0] +'&quality=90';
+export function movie(props: jellyfinApi.BaseItemDto, navigation) {
+  const img = props.BackdropImageTags && props.BackdropImageTags.length != 0 ? props.BackdropImageTags[0] : props.ImageTags['Primary'];
   return (
     <Pressable key={props.Id}  onPress={() =>
       navigation.navigate('Test', { name: 'Test', itemId: props.Id })
+    }>
+      <View style={styles.movie}>
+        <Image source={
+          { uri: 'https://streaming.arthurcargnelli.eu/Items/' + props.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ img +'&quality=90' }
+          }
+          style={styles.image} />
+        <Text style={styles.title}> {props.Name} </Text>
+      </View>
+      </Pressable>
+  )
+}
+
+export function category(props: jellyfinApi.BaseItemDto, navigation) {
+  const url = 'https://streaming.arthurcargnelli.eu/Items/' + props.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ props.BackdropImageTags[0] +'&quality=90';
+  return (
+    <Pressable key={props.Id}  onPress={() =>
+      navigation.navigate('List', { name: 'List', props: props, navigation: navigation })
     }>
       <View style={styles.movie}>
         <Image source={
@@ -122,13 +138,13 @@ export function movie(props: MovieModel, navigation) {
   )
 }
 
-
-export function getMovies(navigation) {
+export function getCategories(navigation) {
   const userContext = useContext(UserContext);
-  const [data, setData] = useState<MovieModel[]>([]);
+  const [data, setData] = useState<jellyfinApi.BaseItemDto[]>([]);
   const unmounted = useRef(false);
   useEffect(() => {
-    fetch("https://streaming.arthurcargnelli.eu/Users/bbfb33db95d74eef8761c63b9dd929cb/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes=Movie&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId=db4c1708cbb5dd1676284a40f2950aba&Limit=100&api_key="+ userContext.apiKey)
+    fetch("https://streaming.arthurcargnelli.eu/Users/"+userContext.user.Id+"/Views",{
+      method: 'GET', headers: config.headers })
     .then( response => {
       if (response.status == 200) {
         return response.json()
@@ -137,7 +153,9 @@ export function getMovies(navigation) {
         throw Error(response.statusText);
       }
     })
-    .then((movieData: Itemlist<MovieModel>) => setData(movieData?.Items))
+    .then((movieData: Itemlist<jellyfinApi.BaseItemDto>) => {
+      setData(movieData?.Items)
+    })
     .catch(() => {
       console.error("Error during movies fetch.")
     });
@@ -151,15 +169,71 @@ export function getMovies(navigation) {
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         />
-    {data.map((item: MovieModel) => movie(item, navigation))}</View>
+    {data.map((item: jellyfinApi.BaseItemDto) => category(item, navigation))}</View>
 }
 
-function Screen1({ navigation }) {
+export function getMovies(props: jellyfinApi.BaseItemDto, navigation) {
+  const userContext = useContext(UserContext);
+  useEffect(() => {
+    userContext.setPageTitle(props?.Name)
+  }, [])
+  const [data, setData] = useState<jellyfinApi.BaseItemDto[]>([]);
+  const unmounted = useRef(false);
+  const type= props.CollectionType == 'movies' ? 'Movie' : 'Series' 
+  useEffect(() => {
+    fetch("https://streaming.arthurcargnelli.eu/Users/"+userContext.user.Id+"/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes="+type+"&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId="+props.Id+"&Limit=100", {
+      method: 'GET', headers: config.headers })
+    .then( response => {
+      if (response.status == 200) {
+        return response.json()
+      } else {
+        console.error("Bad response status: ", response.status);
+        throw Error(response.statusText);
+      }
+    })
+    .then((movieData: Itemlist<jellyfinApi.BaseItemDto>) => setData(movieData?.Items))
+    .catch(() => {
+      console.error("Error during movies fetch.")
+    });
+    return () => { unmounted.current = true };
+  }, [])
+  return <View  style={styles.wrapperMovies}>
+          <LinearGradient
+        // Background Linear Gradient
+        colors={['#000420', '#06256f', '#2b052b', '#06256f', '#000420']}
+        style={styles.background}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        />
+    {data.map((item: jellyfinApi.BaseItemDto) => movie(item, navigation))}</View>
+}
+
+function categories({ navigation }) {
   const userContext = useContext(UserContext);
   useEffect(() => {
     userContext.setPageTitle('Home')
   }, [])
-  const Movies = getMovies(navigation)
+  const Movies = getCategories(navigation)
+  return (
+      <View style={styles.container}>
+        <LinearGradient
+        // Background Linear Gradient
+        colors={['#000420', '#06256f', '#2b052b', '#06256f', '#000420']}
+        style={styles.background}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        />
+        <ScrollView style={styles.listMovies}>{Movies}</ScrollView>
+      </View>
+  );
+}
+
+function Screen1({ route }) {
+  const userContext = useContext(UserContext);
+  useEffect(() => {
+    userContext.setPageTitle('Home')
+  }, [])
+  const Movies = getMovies(route.params.props, route.params.navigation)
   return (
       <View style={styles.container}>
         <LinearGradient
@@ -209,6 +283,13 @@ function App(props) {
           <Stack.Navigator>
               <Stack.Screen
                 name= "Home"
+                component={categories}
+                options={{ title: userContext.PageTitle,
+                headerTransparent: true,
+                headerTitleStyle: (styles.title)}}
+              />
+              <Stack.Screen
+                name= "List"
                 component={Screen1}
                 options={{ title: userContext.PageTitle,
                 headerTransparent: true,
