@@ -1,6 +1,6 @@
 import { Video } from 'expo-av';
 import React, {useContext, useEffect, useState } from 'react';
-import { StyleSheet, View, Image, Text, ScrollView } from 'react-native';
+import { StyleSheet, View, Image, Text, ScrollView, Pressable } from 'react-native';
 import axios, {AxiosInstance, AxiosRequestConfig} from 'axios';
 import  * as uuid from 'react-native-uuid';
 import { PlaybackModel } from '../model/playback';
@@ -17,7 +17,6 @@ function ticksToMs(ticks: number | null | undefined): number {
 }
 
 export function video(movie: jellyfinApi.BaseItemDto, playback: PlaybackModel, params: string) {
-    console.log(movie)
     let containers = playback.MediaSources[0]?.Container.split(',');
         return <Video
                 source= {{uri: `https://streaming.arthurcargnelli.eu/Videos/${playback?.MediaSources[0].Id}/stream.${containers[0] === 'mov' ? containers[1] : containers[0]}?${params}`}}
@@ -36,19 +35,24 @@ export function video(movie: jellyfinApi.BaseItemDto, playback: PlaybackModel, p
 
 }
 
-export function season(item: jellyfinApi.BaseItemDto) {
+
+
+export function season(item: jellyfinApi.BaseItemDto, navigation) {
   const img = item?.ParentBackdropImageTags && item?.ParentBackdropImageTags.length != 0 ? item?.ParentBackdropImageTags[0] : item?.BackdropImageTags[0];
       return (
-          <View style={styles.season} key={item?.Id}> 
-            <Image source={{ uri: 'https://streaming.arthurcargnelli.eu/Items/' + item?.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ img +'&quality=90' }} style={styles.image} />
-            <Text style={styles.h2}>{item?.Name}</Text>
-        </View>)
+        <Pressable key={item?.Id}  onPress={() =>
+          navigation.navigate('Season', { name: 'Season', item: item, navigation: navigation })
+        }>
+            <View style={styles.season} key={item?.Id}> 
+              <Image source={{ uri: 'https://streaming.arthurcargnelli.eu/Items/' + item?.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ img +'&quality=90' }} style={styles.image} />
+              <Text style={styles.h2}>{item?.Name}</Text>
+          </View>
+        </Pressable>)
   
 
 }
 
-export function getMovie(id: string) {
-    console.log(id)
+export function getItem(id: string, navigation) {
     const userContext = useContext(UserContext);
     const [movie, setMovie] = useState<jellyfinApi.BaseItemDto>();
     const [params, setParams] = useState<string>();
@@ -66,7 +70,6 @@ export function getMovie(id: string) {
         })
         .then((movieData: jellyfinApi.BaseItemDto) => {
             setMovie(movieData)
-            console.log(movieData)
             userContext.setPageTitle(movieData?.Name);
             if (!movieData.IsFolder) {
               fetch('https://streaming.arthurcargnelli.eu/Items/' + movieData.Id + '/PlaybackInfo?UserId='+userContext.user.Id+'&StartTimeTicks=0&IsPlayback=true&AutoOpenLiveStream=true&MediaSourceId=' + movieData.Id + '&MaxStreamingBitrate=3&api_key='+userContext.apiKey)
@@ -78,7 +81,6 @@ export function getMovie(id: string) {
                     }
                 })
                 .then((playback: PlaybackModel) => {
-                    console.log(playback)
                     if (playback.MediaSources[0].SupportsDirectStream) {
                         const directOptions: Record<
                         string,
@@ -114,7 +116,6 @@ export function getMovie(id: string) {
                   }
               })
               .then((seasons: jellyfinApi.BaseItemDtoQueryResult) => {
-                console.log(seasons);
                 setSeason(seasons);
               });
             }
@@ -130,7 +131,7 @@ export function getMovie(id: string) {
               </View>  
           </View>  
           {movie && playback && params ? video(movie, playback, params) : movie?.IsFolder ? <View style={styles.seasons}>
-            {seasons?.Items.map((item: jellyfinApi.BaseItemDto) => season(item))}</View> : <Text> Loading ...</Text> }
+            {seasons?.Items.map((item: jellyfinApi.BaseItemDto) => season(item, navigation))}</View> : <Text> Loading ...</Text> }
         </View>  
         </ScrollView>
   }
@@ -146,7 +147,7 @@ export function Screen2 ({route}){
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
             />
-            {getMovie(route.params.itemId)}
+            {getItem(route.params.itemId, route.params.navigation)}
         </View>
     )
 }
@@ -184,6 +185,7 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
+      flexWrap: 'wrap'
     },
     season: {
       display: "flex",

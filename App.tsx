@@ -15,6 +15,8 @@ import { ApplicationProvider, Input, Button } from '@ui-kitten/components';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants'
 import { Platform } from 'react-native';
+import { getItems } from './src/ItemList.component';
+import { Screen3 } from './src/SeasonEpisode.component';
 
 
 const Stack = createStackNavigator();
@@ -100,26 +102,10 @@ function authent(username: string, password: string, url: string, userContext) {
         }
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       })
 }
 
-export function movie(props: jellyfinApi.BaseItemDto, navigation) {
-  const img = props.BackdropImageTags && props.BackdropImageTags.length != 0 ? props.BackdropImageTags[0] : props.ImageTags['Primary'];
-  return (
-    <Pressable key={props.Id}  onPress={() =>
-      navigation.navigate('Test', { name: 'Test', itemId: props.Id })
-    }>
-      <View style={styles.movie}>
-        <Image source={
-          { uri: 'https://streaming.arthurcargnelli.eu/Items/' + props.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ img +'&quality=90' }
-          }
-          style={styles.image} />
-        <Text style={styles.title}> {props.Name} </Text>
-      </View>
-      </Pressable>
-  )
-}
 
 export function category(props: jellyfinApi.BaseItemDto, navigation) {
   const url = 'https://streaming.arthurcargnelli.eu/Items/' + props.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ props.BackdropImageTags[0] +'&quality=90';
@@ -172,42 +158,6 @@ export function getCategories(navigation) {
     {data.map((item: jellyfinApi.BaseItemDto) => category(item, navigation))}</View>
 }
 
-export function getMovies(props: jellyfinApi.BaseItemDto, navigation) {
-  const userContext = useContext(UserContext);
-  useEffect(() => {
-    userContext.setPageTitle(props?.Name)
-  }, [])
-  const [data, setData] = useState<jellyfinApi.BaseItemDto[]>([]);
-  const unmounted = useRef(false);
-  const type= props.CollectionType == 'movies' ? 'Movie' : 'Series' 
-  useEffect(() => {
-    fetch("https://streaming.arthurcargnelli.eu/Users/"+userContext.user.Id+"/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes="+type+"&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId="+props.Id+"&Limit=100", {
-      method: 'GET', headers: config.headers })
-    .then( response => {
-      if (response.status == 200) {
-        return response.json()
-      } else {
-        console.error("Bad response status: ", response.status);
-        throw Error(response.statusText);
-      }
-    })
-    .then((movieData: Itemlist<jellyfinApi.BaseItemDto>) => setData(movieData?.Items))
-    .catch(() => {
-      console.error("Error during movies fetch.")
-    });
-    return () => { unmounted.current = true };
-  }, [])
-  return <View  style={styles.wrapperMovies}>
-          <LinearGradient
-        // Background Linear Gradient
-        colors={['#000420', '#06256f', '#2b052b', '#06256f', '#000420']}
-        style={styles.background}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 1, y: 0.5 }}
-        />
-    {data.map((item: jellyfinApi.BaseItemDto) => movie(item, navigation))}</View>
-}
-
 function categories({ navigation }) {
   const userContext = useContext(UserContext);
   useEffect(() => {
@@ -233,7 +183,7 @@ function Screen1({ route }) {
   useEffect(() => {
     userContext.setPageTitle('Home')
   }, [])
-  const Movies = getMovies(route.params.props, route.params.navigation)
+  const Movies = getItems(route.params.props, route.params.navigation)
   return (
       <View style={styles.container}>
         <LinearGradient
@@ -298,6 +248,13 @@ function App(props) {
               <Stack.Screen
                 name="Test"
                 component={Screen2}
+                options={{ title: userContext.PageTitle,
+                headerTransparent: true,
+                headerTitleStyle: (styles.title)}}
+              />
+              <Stack.Screen
+                name="Season"
+                component={Screen3}
                 options={{ title: userContext.PageTitle,
                 headerTransparent: true,
                 headerTitleStyle: (styles.title)}}
