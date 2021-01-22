@@ -88,6 +88,20 @@ async function sendPushNotification(expoPushToken) {
   });
 }
 
+async function logout(userContext, navigation) {
+  userContext.setUser(null);
+  userContext.setApiKey(null);
+  userContext.setHeaders(null);
+  const keys = ['@access_token', '@headers', '@user'];
+  try {
+    await AsyncStorage.multiRemove(keys);
+    navigation.navigate('Home', { name: 'Home', navigation: navigation })
+  } catch(e) {
+    // remove error
+  }
+  console.log('Disconnected');
+}
+
 function authent(username: string, password: string, url: string, userContext) {
     fetch(url+'/Users/AuthenticateByName', {
       method: 'POST', headers: config.headers, body: JSON.stringify({Pw: password, Username: username})
@@ -95,10 +109,10 @@ function authent(username: string, password: string, url: string, userContext) {
     .then(response => response.json())
     .then(result => {
         if (result) {
-          config.headers['X-Emby-Authorization'] = config.headers['X-Emby-Authorization'] + ',Token="'+ result.AccessToken +'"'
-          AsyncStorage.setItem('@access_token', result.AccessToken)
-          AsyncStorage.setItem('@user', result.User)
-          AsyncStorage.setItem('@header', config.headers)
+          AsyncStorage.setItem('@access_token', result.AccessToken);
+          config.headers['X-Emby-Authorization'] = config.headers['X-Emby-Authorization'] + ',Token="'+ result.AccessToken +'"';
+          AsyncStorage.setItem('@headers', JSON.stringify(config.headers));
+          AsyncStorage.setItem('@user', JSON.stringify(result.user));
           userContext.setUser(result.User);
           userContext.setApiKey(result.AccessToken);
           userContext.setHeaders(config.headers);
@@ -133,7 +147,7 @@ export function getCategories(navigation) {
   const unmounted = useRef(false);
   useEffect(() => {
     fetch("https://streaming.arthurcargnelli.eu/Users/"+userContext.user.Id+"/Views",{
-      method: 'GET', headers: config.headers })
+      method: 'GET', headers: userContext.Headers })
     .then( response => {
       if (response.status == 200) {
         return response.json()
@@ -201,7 +215,7 @@ function Screen1({ route }) {
   );
 }
 
-function App(props) {
+function App(props, {navigation}) {
   const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification] = useState(false);
   const [userName, setUsername] = useState("");
@@ -230,10 +244,9 @@ function App(props) {
     };
   }, []);
   const userContext = useContext(UserContext);
-  if (userContext.apiKey && userContext.apiKey != null && 
-    Object.keys(userContext.apiKey).length !== 0 && userContext.apiKey.constructor !== Object && 
-    userContext.user && userContext.user != null
-    && Object.keys(userContext.user).length !== 0 && userContext.user.constructor !== Object) {
+  
+  if ( userContext.apiKey && userContext.apiKey != null && Object.keys(userContext.apiKey).length !== 0 &&
+  userContext.apiKey.constructor !== Object && userContext.user && userContext.user != null && Object.keys(userContext.apiKey).length !== 0) {
     return (
       <NavigationContainer>
           <Stack.Navigator>
@@ -242,6 +255,15 @@ function App(props) {
                 component={categories}
                 options={{ title: userContext.PageTitle,
                 headerTransparent: true,
+                headerRight: () => (
+                  <Button
+                    onPress={() => {
+                      logout(userContext, navigation);
+                    }}
+                  >
+                    Déconnexion
+                 </Button>
+                ),
                 headerTitleStyle: (styles.title)}}
               />
               <Stack.Screen
@@ -249,6 +271,16 @@ function App(props) {
                 component={Screen1}
                 options={{ title: userContext.PageTitle,
                 headerTransparent: true,
+                headerRight: () => (
+                  <Button
+                    onPress={() => {
+                      logout(userContext, navigation);
+                      
+                    }}
+                  >
+                    Déconnexion
+                 </Button>
+                ),
                 headerTitleStyle: (styles.title)}}
               />
               <Stack.Screen
@@ -256,6 +288,16 @@ function App(props) {
                 component={Screen2}
                 options={{ title: userContext.PageTitle,
                 headerTransparent: true,
+                headerRight: () => (
+                  <Button
+                    onPress={() => {
+                      logout(userContext, navigation);
+                      
+                    }}
+                  >
+                    Déconnexion
+                 </Button>
+                ),
                 headerTitleStyle: (styles.title)}}
               />
               <Stack.Screen
@@ -263,6 +305,16 @@ function App(props) {
                 component={Screen3}
                 options={{ title: userContext.PageTitle,
                 headerTransparent: true,
+                headerRight: () => (
+                  <Button
+                    onPress={() => {
+                      logout(userContext, navigation);
+                      
+                    }}
+                  >
+                    Déconnexion
+                 </Button>
+                ),
                 headerTitleStyle: (styles.title)}}
               />
             </Stack.Navigator>  
