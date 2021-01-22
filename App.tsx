@@ -15,19 +15,9 @@ import { ApplicationProvider, Input, Button } from '@ui-kitten/components';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants'
 import { Platform } from 'react-native';
-<<<<<<< HEAD
 import { getItems } from './src/ItemList.component';
 import { Screen3 } from './src/SeasonEpisode.component';
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
->>>>>>> 28a443dec8121e771a141f2960abfbb25378f324
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 
 const Stack = createStackNavigator();
 
@@ -98,20 +88,6 @@ async function sendPushNotification(expoPushToken) {
   });
 }
 
-async function logout(userContext, navigation) {
-  userContext.setUser(null);
-  userContext.setApiKey(null);
-  userContext.setHeaders(null);
-  const keys = ['@access_token', '@headers', '@user'];
-  try {
-    await AsyncStorage.multiRemove(keys);
-    navigation.navigate('Home', { name: 'Home', navigation: navigation })
-  } catch(e) {
-    // remove error
-  }
-  console.log('Disconnected');
-}
-
 function authent(username: string, password: string, url: string, userContext) {
     fetch(url+'/Users/AuthenticateByName', {
       method: 'POST', headers: config.headers, body: JSON.stringify({Pw: password, Username: username})
@@ -119,28 +95,10 @@ function authent(username: string, password: string, url: string, userContext) {
     .then(response => response.json())
     .then(result => {
         if (result) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-<<<<<<< HEAD
           config.headers['X-Emby-Authorization'] = config.headers['X-Emby-Authorization'] + ',Token="'+ result.AccessToken +'"'
           AsyncStorage.setItem('@access_token', result.AccessToken)
-=======
->>>>>>> local storage should work
-=======
-          AsyncStorage.setItem('@access_token', result.AccessToken)
->>>>>>> 28a443dec8121e771a141f2960abfbb25378f324
-=======
-=======
->>>>>>> Stashed changes
-          AsyncStorage.setItem('@access_token', result.AccessToken);
-          config.headers['X-Emby-Authorization'] = config.headers['X-Emby-Authorization'] + ',Token="'+ result.AccessToken +'"';
-          AsyncStorage.setItem('@headers', JSON.stringify(config.headers));
-          AsyncStorage.setItem('@user', JSON.stringify(result.user));
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+          AsyncStorage.setItem('@user', result.User)
+          AsyncStorage.setItem('@header', config.headers)
           userContext.setUser(result.User);
           userContext.setApiKey(result.AccessToken);
           userContext.setHeaders(config.headers);
@@ -175,7 +133,7 @@ export function getCategories(navigation) {
   const unmounted = useRef(false);
   useEffect(() => {
     fetch("https://streaming.arthurcargnelli.eu/Users/"+userContext.user.Id+"/Views",{
-      method: 'GET', headers: userContext.Headers })
+      method: 'GET', headers: config.headers })
     .then( response => {
       if (response.status == 200) {
         return response.json()
@@ -243,7 +201,7 @@ function Screen1({ route }) {
   );
 }
 
-function App(props, {navigation}) {
+function App(props) {
   const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification] = useState(false);
   const [userName, setUsername] = useState("");
@@ -272,149 +230,10 @@ function App(props, {navigation}) {
     };
   }, []);
   const userContext = useContext(UserContext);
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-  async () => {
-    try {
-      const value = await AsyncStorage.getItem('@access_token');
-=======
-  const getData = async () => {
-    try {
-      const value = await AsyncStorage.getItem('@access_token')
->>>>>>> 28a443dec8121e771a141f2960abfbb25378f324
-      if(value !== null) {
-        return (
-          <NavigationContainer>
-              <Stack.Navigator>
-                  <Stack.Screen
-                    name= "Home"
-                    component={Screen1}
-                    options={{ title: 'Home',
-                    headerTransparent: true,
-                    headerTitleStyle: (styles.title)}}
-                  />
-                  <Stack.Screen
-                    name="Test"
-                    component={Screen2}
-                    options={{ title: 'Test',
-                    headerTransparent: true,
-                    headerTitleStyle: (styles.title)}}
-                  />
-                </Stack.Navigator>  
-          </NavigationContainer>
-        )
-      } else {
-        return (
-          <View style={styles.container}>
-              <Text  style={{ textAlign: "center" }}>
-                Authentication
-              </Text>
-              <Text>Server URL</Text>
-              <Input
-                value={url}
-                onChangeText={(text) => setURL(text)}
-                placeholder="https://monsite.monsite/"
-              />
-              <Text>UserName</Text>
-              <Input
-                value={userName}
-                onChangeText={(text) => setUsername(text)}
-                placeholder="USERNAME"
-              />
-              <Text>Password</Text>
-              <Input
-                value={password}
-                onChangeText={(text) => setPassword(text)}
-                placeholder="password"
-                secureTextEntry
-              />
-              <Button
-                style={{ flex: 0, marginLeft: 8 }}
-                onPress={() =>
-                  authent(
-                        userName,
-                        password,
-                        url,
-                        userContext
-                      )
-                }
-              >
-                  Connexion
-              </Button>
-              <Button
-                onPress={async () => {
-                  await sendPushNotification(expoPushToken);
-                }}
-                >
-                Press to Send Notification
-              </Button>
-          </View>
-        )
-      };
-    } catch(e) {
-      // error reading value
-      return (
-        <View style={styles.container}>
-            <Text  style={{ textAlign: "center" }}>
-              Authentication
-            </Text>
-            <Text>Server URL</Text>
-            <Input
-              value={url}
-              onChangeText={(text) => setURL(text)}
-              placeholder="https://monsite.monsite/"
-            />
-            <Text>UserName</Text>
-            <Input
-              value={userName}
-              onChangeText={(text) => setUsername(text)}
-              placeholder="USERNAME"
-            />
-            <Text>Password</Text>
-            <Input
-              value={password}
-              onChangeText={(text) => setPassword(text)}
-              placeholder="password"
-              secureTextEntry
-            />
-            <Button
-              style={{ flex: 0, marginLeft: 8 }}
-              onPress={() =>
-                authent(
-                      userName,
-                      password,
-                      url,
-                      userContext
-                    )
-              }
-            >
-                Connexion
-            </Button>
-            <Button
-              onPress={async () => {
-                await sendPushNotification(expoPushToken);
-              }}
-              >
-              Press to Send Notification
-            </Button>
-        </View>
-      )
-    };
-  }
-
-  /*
-  if (Object.keys(userContext.apiKey).length !== 0 && userContext.apiKey.constructor !== Object) {
-=======
-  console.log(userContext)
-  if ( userContext.apiKey && userContext.apiKey != null && Object.keys(userContext.apiKey).length !== 0 &&
-  userContext.apiKey.constructor !== Object && userContext.user && userContext.user != null && Object.keys(userContext.apiKey).length !== 0) {
->>>>>>> Stashed changes
-=======
-  console.log(userContext)
-  if ( userContext.apiKey && userContext.apiKey != null && Object.keys(userContext.apiKey).length !== 0 &&
-  userContext.apiKey.constructor !== Object && userContext.user && userContext.user != null && Object.keys(userContext.apiKey).length !== 0) {
->>>>>>> Stashed changes
+  if (userContext.apiKey && userContext.apiKey != null && 
+    Object.keys(userContext.apiKey).length !== 0 && userContext.apiKey.constructor !== Object && 
+    userContext.user && userContext.user != null
+    && Object.keys(userContext.user).length !== 0 && userContext.user.constructor !== Object) {
     return (
       <NavigationContainer>
           <Stack.Navigator>
@@ -423,15 +242,6 @@ function App(props, {navigation}) {
                 component={categories}
                 options={{ title: userContext.PageTitle,
                 headerTransparent: true,
-                headerRight: () => (
-                  <Button
-                    onPress={() => {
-                      logout(userContext, navigation);
-                    }}
-                  >
-                    Déconnexion
-                 </Button>
-                ),
                 headerTitleStyle: (styles.title)}}
               />
               <Stack.Screen
@@ -439,16 +249,6 @@ function App(props, {navigation}) {
                 component={Screen1}
                 options={{ title: userContext.PageTitle,
                 headerTransparent: true,
-                headerRight: () => (
-                  <Button
-                    onPress={() => {
-                      logout(userContext, navigation);
-                      
-                    }}
-                  >
-                    Déconnexion
-                 </Button>
-                ),
                 headerTitleStyle: (styles.title)}}
               />
               <Stack.Screen
@@ -456,16 +256,6 @@ function App(props, {navigation}) {
                 component={Screen2}
                 options={{ title: userContext.PageTitle,
                 headerTransparent: true,
-                headerRight: () => (
-                  <Button
-                    onPress={() => {
-                      logout(userContext, navigation);
-                      
-                    }}
-                  >
-                    Déconnexion
-                 </Button>
-                ),
                 headerTitleStyle: (styles.title)}}
               />
               <Stack.Screen
@@ -473,16 +263,6 @@ function App(props, {navigation}) {
                 component={Screen3}
                 options={{ title: userContext.PageTitle,
                 headerTransparent: true,
-                headerRight: () => (
-                  <Button
-                    onPress={() => {
-                      logout(userContext, navigation);
-                      
-                    }}
-                  >
-                    Déconnexion
-                 </Button>
-                ),
                 headerTitleStyle: (styles.title)}}
               />
             </Stack.Navigator>  
@@ -536,7 +316,6 @@ function App(props, {navigation}) {
       </View>
     )
   };
-*/
 }
 
 const ContextContainer = () => (
