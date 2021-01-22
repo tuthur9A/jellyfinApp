@@ -22,16 +22,23 @@ export const UserProvider = ({children}) => {
     const [TokenNotification, setTokenNotification] = useState({});
     const [PageTitle, setPageTitle] = useState({});
     useEffect(() => {
+      AsyncStorage.getItem('@access_token')
+      .then(value => {
+        setApiKey(value);
+      })
+      AsyncStorage.getItem('@headers')
+      .then(value => {
+        setHeaders(value);
+      })
+      AsyncStorage.getItem('@user')
+      .then(value => {
+        setUser(value);
+      })
       // async storage get item
       setPageTitle('Home');
-    }, [])
-  
-  const initialAccessToken = AsyncStorage.getItem('@access_token');
 
-  const setAccessToken = (newAccessToken) => {
-    AsyncStorage.setItem("@access_token", newAccessToken);
-    setApiKey(newAccessToken);
-  }
+    }, []
+  )
 
   return (
     <UserContext.Provider
@@ -43,7 +50,7 @@ export const UserProvider = ({children}) => {
         PageTitle,
         setUser,
         setHeaders,
-        setApiKey: setAccessToken,
+        setApiKey,
         setTokenNotification,
         setPageTitle
       }}
