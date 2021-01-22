@@ -15,8 +15,11 @@ import { ApplicationProvider, Input, Button } from '@ui-kitten/components';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants'
 import { Platform } from 'react-native';
+<<<<<<< HEAD
 import { getItems } from './src/ItemList.component';
 import { Screen3 } from './src/SeasonEpisode.component';
+=======
+>>>>>>> 28a443dec8121e771a141f2960abfbb25378f324
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
@@ -97,10 +100,14 @@ function authent(username: string, password: string, url: string, userContext) {
     .then(result => {
         if (result) {
 <<<<<<< HEAD
+<<<<<<< HEAD
           config.headers['X-Emby-Authorization'] = config.headers['X-Emby-Authorization'] + ',Token="'+ result.AccessToken +'"'
           AsyncStorage.setItem('@access_token', result.AccessToken)
 =======
 >>>>>>> local storage should work
+=======
+          AsyncStorage.setItem('@access_token', result.AccessToken)
+>>>>>>> 28a443dec8121e771a141f2960abfbb25378f324
           userContext.setUser(result.User);
           userContext.setApiKey(result.AccessToken);
           userContext.setHeaders(config.headers);
@@ -232,9 +239,15 @@ function App(props) {
     };
   }, []);
   const userContext = useContext(UserContext);
+<<<<<<< HEAD
   async () => {
     try {
       const value = await AsyncStorage.getItem('@access_token');
+=======
+  const getData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('@access_token')
+>>>>>>> 28a443dec8121e771a141f2960abfbb25378f324
       if(value !== null) {
         return (
           <NavigationContainer>
