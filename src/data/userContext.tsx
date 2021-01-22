@@ -1,5 +1,6 @@
 import React, {createContext, useEffect, useState} from 'react';
 import * as jellyfinApi from '@jellyfin/client-axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const UserContext = createContext({
     user: {} as jellyfinApi.UserDto,
@@ -24,6 +25,13 @@ export const UserProvider = ({children}) => {
       // async storage get item
       setPageTitle('Home');
     }, [])
+  
+  const initialAccessToken = AsyncStorage.getItem('@access_token');
+
+  const setAccessToken = (newAccessToken) => {
+    AsyncStorage.setItem("@access_token", newAccessToken);
+    setApiKey(newAccessToken);
+  }
 
   return (
     <UserContext.Provider
@@ -34,8 +42,8 @@ export const UserProvider = ({children}) => {
         TokenNotification,
         PageTitle,
         setUser,
-        setApiKey,
         setHeaders,
+        setApiKey: setAccessToken,
         setTokenNotification,
         setPageTitle
       }}

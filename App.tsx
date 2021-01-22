@@ -96,8 +96,11 @@ function authent(username: string, password: string, url: string, userContext) {
     .then(response => response.json())
     .then(result => {
         if (result) {
+<<<<<<< HEAD
           config.headers['X-Emby-Authorization'] = config.headers['X-Emby-Authorization'] + ',Token="'+ result.AccessToken +'"'
           AsyncStorage.setItem('@access_token', result.AccessToken)
+=======
+>>>>>>> local storage should work
           userContext.setUser(result.User);
           userContext.setApiKey(result.AccessToken);
           userContext.setHeaders(config.headers);
@@ -229,9 +232,9 @@ function App(props) {
     };
   }, []);
   const userContext = useContext(UserContext);
-  const getData = async () => {
+  async () => {
     try {
-      const value = await AsyncStorage.getItem('@access_token')
+      const value = await AsyncStorage.getItem('@access_token');
       if(value !== null) {
         return (
           <NavigationContainer>
