@@ -36,7 +36,6 @@ export const UserProvider = ({children}) => {
       })
       // async storage get item
       setPageTitle('Home');
-
     }, []
   )
 

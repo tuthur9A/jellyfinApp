@@ -19,8 +19,11 @@ import { Platform } from 'react-native';
 import { getItems } from './src/ItemList.component';
 import { Screen3 } from './src/SeasonEpisode.component';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
 >>>>>>> 28a443dec8121e771a141f2960abfbb25378f324
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -117,6 +120,7 @@ function authent(username: string, password: string, url: string, userContext) {
     .then(result => {
         if (result) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 <<<<<<< HEAD
           config.headers['X-Emby-Authorization'] = config.headers['X-Emby-Authorization'] + ',Token="'+ result.AccessToken +'"'
@@ -127,10 +131,15 @@ function authent(username: string, password: string, url: string, userContext) {
           AsyncStorage.setItem('@access_token', result.AccessToken)
 >>>>>>> 28a443dec8121e771a141f2960abfbb25378f324
 =======
+=======
+>>>>>>> Stashed changes
           AsyncStorage.setItem('@access_token', result.AccessToken);
           config.headers['X-Emby-Authorization'] = config.headers['X-Emby-Authorization'] + ',Token="'+ result.AccessToken +'"';
           AsyncStorage.setItem('@headers', JSON.stringify(config.headers));
           AsyncStorage.setItem('@user', JSON.stringify(result.user));
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
           userContext.setUser(result.User);
           userContext.setApiKey(result.AccessToken);
@@ -264,6 +273,7 @@ function App(props, {navigation}) {
   }, []);
   const userContext = useContext(UserContext);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 <<<<<<< HEAD
   async () => {
     try {
@@ -395,6 +405,11 @@ function App(props, {navigation}) {
 
   /*
   if (Object.keys(userContext.apiKey).length !== 0 && userContext.apiKey.constructor !== Object) {
+=======
+  console.log(userContext)
+  if ( userContext.apiKey && userContext.apiKey != null && Object.keys(userContext.apiKey).length !== 0 &&
+  userContext.apiKey.constructor !== Object && userContext.user && userContext.user != null && Object.keys(userContext.apiKey).length !== 0) {
+>>>>>>> Stashed changes
 =======
   console.log(userContext)
   if ( userContext.apiKey && userContext.apiKey != null && Object.keys(userContext.apiKey).length !== 0 &&
