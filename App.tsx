@@ -18,6 +18,10 @@ import { Platform } from 'react-native';
 import { getItems } from './src/ItemList.component';
 import { Screen3 } from './src/SeasonEpisode.component';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 
 const Stack = createStackNavigator();
 
