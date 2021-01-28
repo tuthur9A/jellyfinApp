@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View, Image, ScrollView, Pressable} from 'react-native';
 import { Itemlist } from './model/ListItems';
 import { Screen2 } from './src/movie.component';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { UserContext, UserProvider } from './src/data/userContext';
@@ -11,27 +11,16 @@ import * as jellyfinApi from '@jellyfin/client-axios';
 import  * as uuid from 'react-native-uuid';
 import { useContext } from 'react';
 import * as eva from '@eva-design/eva';
-import { ApplicationProvider, Input, Button } from '@ui-kitten/components';
+import { ApplicationProvider, IconRegistry, Input, Button, Icon } from '@ui-kitten/components';
+import { EvaIconsPack } from '@ui-kitten/eva-icons';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants'
 import { Platform } from 'react-native';
 import { getItems } from './src/ItemList.component';
 import { Screen3 } from './src/SeasonEpisode.component';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 
 const Stack = createStackNavigator();
-
-const deviceId = uuid.v4();
-const config: AxiosRequestConfig = {
-  baseURL: 'https://streaming.arthurcargnelli.eu',
-  headers: {'X-Emby-Authorization': 'MediaBrowser Client="Jellyfin App", Device="JellyfinApp", DeviceId="'+ deviceId +'", Version="10.6.4"',
-  'Content-Type': 'application/json'}
-};
-const client: AxiosInstance = axios.create(config);
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -107,19 +96,29 @@ async function logout(userContext, navigation) {
 }
 
 function authent(username: string, password: string, url: string, userContext) {
+  const deviceId = uuid.v4();
+  const config: AxiosRequestConfig = {
+    baseURL: 'https://streaming.arthurcargnelli.eu',
+    headers: {'X-Emby-Authorization': 'MediaBrowser Client="Jellyfin App", Device="JellyfinApp", DeviceId="'+ deviceId +'", Version="10.6.4"',
+    'Content-Type': 'application/json'}
+  };
+  const client: AxiosInstance = axios.create(config);
     fetch(url+'/Users/AuthenticateByName', {
       method: 'POST', headers: config.headers, body: JSON.stringify({Pw: password, Username: username})
     })
     .then(response => response.json())
     .then(result => {
         if (result) {
-          AsyncStorage.setItem('@access_token', result.AccessToken);
-          config.headers['X-Emby-Authorization'] = config.headers['X-Emby-Authorization'] + ',Token="'+ result.AccessToken +'"';
-          AsyncStorage.setItem('@headers', JSON.stringify(config.headers));
-          AsyncStorage.setItem('@user', JSON.stringify(result.user));
-          userContext.setUser(result.User);
-          userContext.setApiKey(result.AccessToken);
+          config.headers['X-Emby-Authorization'] = config.headers['X-Emby-Authorization'] + ',Token="'+ result?.AccessToken +'"';
           userContext.setHeaders(config.headers);
+          userContext.setUrl(url);
+          AsyncStorage.setItem('@access_token', result?.AccessToken);
+          AsyncStorage.setItem('@url', url);
+          AsyncStorage.setItem('@headers', JSON.stringify(config.headers));
+          AsyncStorage.setItem('@user', JSON.stringify(result?.user));
+          userContext.setUser(result?.User);
+          userContext.setApiKey(result?.AccessToken);
+          
         }
       })
       .catch(error => {
@@ -129,7 +128,8 @@ function authent(username: string, password: string, url: string, userContext) {
 
 
 export function category(props: jellyfinApi.BaseItemDto, navigation) {
-  const url = 'https://streaming.arthurcargnelli.eu/Items/' + props.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ props.BackdropImageTags[0] +'&quality=90';
+  const userContext = useContext(UserContext);
+  const url = userContext.URL +'/Items/' + props.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ props.BackdropImageTags[0] +'&quality=90';
   return (
     <Pressable key={props.Id}  onPress={() =>
       navigation.navigate('List', { name: 'List', props: props, navigation: navigation })
@@ -150,7 +150,8 @@ export function getCategories(navigation) {
   const [data, setData] = useState<jellyfinApi.BaseItemDto[]>([]);
   const unmounted = useRef(false);
   useEffect(() => {
-    fetch("https://streaming.arthurcargnelli.eu/Users/"+userContext.user.Id+"/Views",{
+    console.log(userContext.Headers)
+    fetch(userContext.URL + "/Users/"+userContext.user.Id+"/Views",{
       method: 'GET', headers: userContext.Headers })
     .then( response => {
       if (response.status == 200) {
@@ -161,10 +162,12 @@ export function getCategories(navigation) {
       }
     })
     .then((movieData: Itemlist<jellyfinApi.BaseItemDto>) => {
+      console.log(movieData);
       setData(movieData?.Items)
     })
-    .catch(() => {
-      console.error("Error during movies fetch.")
+    .catch((e) => {
+      console.log(userContext.user.Id)
+      console.error(e)
     });
     return () => { unmounted.current = true };
   }, [])
@@ -181,10 +184,11 @@ export function getCategories(navigation) {
 
 function categories({ navigation }) {
   const userContext = useContext(UserContext);
-  useEffect(() => {
-    userContext.setPageTitle('Home')
-  }, [])
-  const Movies = getCategories(navigation)
+  useFocusEffect(
+    React.useCallback(() => {
+      userContext.setPageTitle('Home')
+    }, []))
+  const Movies = getCategories(navigation);
   return (
       <View style={styles.container}>
         <LinearGradient
@@ -200,10 +204,6 @@ function categories({ navigation }) {
 }
 
 function Screen1({ route }) {
-  const userContext = useContext(UserContext);
-  useEffect(() => {
-    userContext.setPageTitle('Home')
-  }, [])
   const Movies = getItems(route.params.props, route.params.navigation)
   return (
       <View style={styles.container}>
@@ -218,6 +218,11 @@ function Screen1({ route }) {
       </View>
   );
 }
+
+const powerIcon = (props) => (
+  <Icon name='power-outline' {...props} />
+);
+
 
 function App(props, {navigation}) {
   const [expoPushToken, setExpoPushToken] = useState('');
@@ -248,9 +253,10 @@ function App(props, {navigation}) {
     };
   }, []);
   const userContext = useContext(UserContext);
-  
   if ( userContext.apiKey && userContext.apiKey != null && Object.keys(userContext.apiKey).length !== 0 &&
-  userContext.apiKey.constructor !== Object && userContext.user && userContext.user != null && Object.keys(userContext.apiKey).length !== 0) {
+  userContext.apiKey.constructor !== Object && userContext.user && userContext.user != null &&
+  Object.keys(userContext.user).length !== 0 && userContext.user.constructor == Object  &&
+  userContext.Headers && userContext.Headers != null) {
     return (
       <NavigationContainer>
           <Stack.Navigator>
@@ -261,12 +267,11 @@ function App(props, {navigation}) {
                 headerTransparent: true,
                 headerRight: () => (
                   <Button
-                    onPress={() => {
+                  accessoryLeft={powerIcon}
+                  onPress={() => {
                       logout(userContext, navigation);
                     }}
-                  >
-                    Déconnexion
-                 </Button>
+                  />
                 ),
                 headerTitleStyle: (styles.title)}}
               />
@@ -277,13 +282,11 @@ function App(props, {navigation}) {
                 headerTransparent: true,
                 headerRight: () => (
                   <Button
-                    onPress={() => {
+                  accessoryLeft={powerIcon}
+                  onPress={() => {
                       logout(userContext, navigation);
-                      
                     }}
-                  >
-                    Déconnexion
-                 </Button>
+                  />
                 ),
                 headerTitleStyle: (styles.title)}}
               />
@@ -294,13 +297,11 @@ function App(props, {navigation}) {
                 headerTransparent: true,
                 headerRight: () => (
                   <Button
-                    onPress={() => {
+                  accessoryLeft={powerIcon}
+                  onPress={() => {
                       logout(userContext, navigation);
-                      
                     }}
-                  >
-                    Déconnexion
-                 </Button>
+                  />
                 ),
                 headerTitleStyle: (styles.title)}}
               />
@@ -311,13 +312,11 @@ function App(props, {navigation}) {
                 headerTransparent: true,
                 headerRight: () => (
                   <Button
-                    onPress={() => {
+                  accessoryLeft={powerIcon}
+                  onPress={() => {
                       logout(userContext, navigation);
-                      
                     }}
-                  >
-                    Déconnexion
-                 </Button>
+                  />
                 ),
                 headerTitleStyle: (styles.title)}}
               />
@@ -376,6 +375,7 @@ function App(props, {navigation}) {
 
 const ContextContainer = () => (
   <UserProvider>
+    <IconRegistry icons={EvaIconsPack} />
     <ApplicationProvider {...eva} theme={eva.light}>
       <LinearGradient
           // Background Linear Gradient

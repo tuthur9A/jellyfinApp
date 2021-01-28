@@ -17,9 +17,10 @@ function ticksToMs(ticks: number | null | undefined): number {
 }
 
 export function video(movie: jellyfinApi.BaseItemDto, playback: PlaybackModel, params: string) {
+    const userConstext = useContext(UserContext);
     let containers = playback.MediaSources[0]?.Container.split(',');
         return <Video
-                source= {{uri: `https://streaming.arthurcargnelli.eu/Videos/${playback?.MediaSources[0].Id}/stream.${containers[0] === 'mov' ? containers[1] : containers[0]}?${params}`}}
+                source= {{uri: `${userConstext.URL}/Videos/${playback?.MediaSources[0].Id}/stream.${containers[0] === 'mov' ? containers[1] : containers[0]}?${params}`}}
                 positionMillis={Math.round(ticksToMs(movie?.UserData.PlaybackPositionTicks))}
                 rate={1.0}
                 isMuted={false}
@@ -38,13 +39,14 @@ export function video(movie: jellyfinApi.BaseItemDto, playback: PlaybackModel, p
 
 
 export function season(item: jellyfinApi.BaseItemDto, navigation) {
+  const userConstext = useContext(UserContext);
   const img = item?.ParentBackdropImageTags && item?.ParentBackdropImageTags.length != 0 ? item?.ParentBackdropImageTags[0] : item?.BackdropImageTags[0];
       return (
         <Pressable key={item?.Id}  onPress={() =>
           navigation.navigate('Season', { name: 'Season', item: item, navigation: navigation })
         }>
             <View style={styles.season} key={item?.Id}> 
-              <Image source={{ uri: 'https://streaming.arthurcargnelli.eu/Items/' + item?.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ img +'&quality=90' }} style={styles.image} />
+              <Image source={{ uri: userConstext.URL + '/Items/' + item?.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ img +'&quality=90' }} style={styles.image} />
               <Text style={styles.h2}>{item?.Name}</Text>
           </View>
         </Pressable>)
@@ -59,7 +61,7 @@ export function getItem(id: string, navigation) {
     const [playback, setPlayBack] = useState<PlaybackModel>();
     const [seasons, setSeason] = useState<jellyfinApi.BaseItemDtoQueryResult>();
     useEffect(() => {
-        fetch('https://streaming.arthurcargnelli.eu/Users/'+userContext.user.Id+'/Items/' + id , {
+        fetch(userContext.URL +'/Users/'+userContext.user.Id+'/Items/' + id , {
           method: 'GET', headers: userContext.Headers })
         .then( response => {
             if (response.status == 200) {
@@ -72,7 +74,7 @@ export function getItem(id: string, navigation) {
             setMovie(movieData)
             userContext.setPageTitle(movieData?.Name);
             if (!movieData.IsFolder) {
-              fetch('https://streaming.arthurcargnelli.eu/Items/' + movieData.Id + '/PlaybackInfo?UserId='+userContext.user.Id+'&StartTimeTicks=0&IsPlayback=true&AutoOpenLiveStream=true&MediaSourceId=' + movieData.Id + '&MaxStreamingBitrate=3&api_key='+userContext.apiKey)
+              fetch(userContext.URL + '/Items/' + movieData.Id + '/PlaybackInfo?UserId='+userContext.user.Id+'&StartTimeTicks=0&IsPlayback=true&AutoOpenLiveStream=true&MediaSourceId=' + movieData.Id + '&MaxStreamingBitrate=3&api_key='+userContext.apiKey)
                 .then( response => {
                     if (response.status == 200) {
                         return response.json()
@@ -106,7 +108,7 @@ export function getItem(id: string, navigation) {
                       }
                 });
             } else {
-              fetch('https://streaming.arthurcargnelli.eu/Shows/' + movieData.Id + '/Seasons?UserId='+userContext.user.Id+'&Fields=ItemCounts%2CPrimaryImageAspectRatio%2CBasicSyncInfo%2CCanDelete%2CMediaSourceCount',{
+              fetch(userContext.URL + '/Shows/' + movieData.Id + '/Seasons?UserId='+userContext.user.Id+'&Fields=ItemCounts%2CPrimaryImageAspectRatio%2CBasicSyncInfo%2CCanDelete%2CMediaSourceCount',{
                 method: 'GET', headers: userContext.Headers })
               .then( response => {
                   if (response.status == 200) {
@@ -124,7 +126,7 @@ export function getItem(id: string, navigation) {
     return <ScrollView> 
         <View style={styles.movie}> 
           <View style={styles.informationMovie}> 
-            <Image source={{ uri: 'https://streaming.arthurcargnelli.eu/Items/' + movie?.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ movie?.BackdropImageTags[0] +'&quality=90' }} style={styles.image} />
+            <Image source={{ uri: userContext.URL + '/Items/' + movie?.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ movie?.BackdropImageTags[0] +'&quality=90' }} style={styles.image} />
               <View style={styles.informationMovieText}> 
                 <Text style={styles.h2} >{movie?.Overview} </Text>
                 <Text style={styles.h3} >{movie?.ProductionYear} </Text>

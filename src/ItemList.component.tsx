@@ -5,8 +5,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { UserContext } from './data/userContext';
 import * as jellyfinApi from '@jellyfin/client-axios';
 import { useContext } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 
 export function itemComponent(props: jellyfinApi.BaseItemDto, navigation) {
+  const userContext = useContext(UserContext);
     const img = props.BackdropImageTags && props.BackdropImageTags.length != 0 ? props.BackdropImageTags[0] : props.ImageTags['Primary'];
     return (
       <Pressable key={props.Id}  onPress={() =>
@@ -14,7 +16,7 @@ export function itemComponent(props: jellyfinApi.BaseItemDto, navigation) {
       }>
         <View style={styles.movie}>
           <Image source={
-            { uri: 'https://streaming.arthurcargnelli.eu/Items/' + props.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ img +'&quality=90' }
+            { uri: userContext.URL + '/Items/' + props.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ img +'&quality=90' }
             }
             style={styles.image} />
           <Text style={styles.title}> {props.Name} </Text>
@@ -25,14 +27,16 @@ export function itemComponent(props: jellyfinApi.BaseItemDto, navigation) {
 
 export function getItems(props: jellyfinApi.BaseItemDto, navigation) {
     const userContext = useContext(UserContext);
-    useEffect(() => {
-      userContext.setPageTitle(props?.Name)
-    }, [])
+    useFocusEffect(
+      React.useCallback(() => {
+        userContext.setPageTitle(props?.Name)
+      }, [])
+    )
     const [data, setData] = useState<jellyfinApi.BaseItemDto[]>([]);
     const unmounted = useRef(false);
     const type= props?.CollectionType == 'movies' ? 'Movie' : 'Series' 
     useEffect(() => {
-      fetch("https://streaming.arthurcargnelli.eu/Users/"+userContext.user.Id+"/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes="+type+"&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId="+props.Id+"&Limit=100", {
+      fetch(userContext.URL + "/Users/"+userContext.user.Id+"/Items?SortBy=SortName%2CProductionYear&SortOrder=Ascending&IncludeItemTypes="+type+"&Recursive=true&Fields=PrimaryImageAspectRatio%2CMediaSourceCount%2CBasicSyncInfo&ImageTypeLimit=1&EnableImageTypes=Primary%2CBackdrop%2CBanner%2CThumb&StartIndex=0&ParentId="+props.Id+"&Limit=100", {
         method: 'GET', headers: userContext.Headers })
       .then( response => {
         if (response.status == 200) {
