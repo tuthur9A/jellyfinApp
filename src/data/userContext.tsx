@@ -7,10 +7,12 @@ export const UserContext = createContext({
     apiKey: null,
     TokenNotification: null,
     Headers: null,
+    URL: null,
     PageTitle: null,
     setUser: (...user) => {},
     setApiKey: (...ApiKey) => {},
     setHeaders: (...Headers) => {},
+    setUrl: (...URL)=> {},
     setTokenNotification: (...TokenNotification) => {},
     setPageTitle: (...PageTitle) => {},
 });
@@ -19,6 +21,7 @@ export const UserProvider = ({children}) => {
     const [user, setUser] = useState({});
     const [apiKey, setApiKey] = useState({});
     const [Headers, setHeaders] = useState({});
+    const [URL, setUrl] = useState({});
     const [TokenNotification, setTokenNotification] = useState({});
     const [PageTitle, setPageTitle] = useState({});
     useEffect(() => {
@@ -34,6 +37,10 @@ export const UserProvider = ({children}) => {
       .then(value => {
         setUser(value);
       })
+      AsyncStorage.getItem('@url')
+      .then(value => {
+        setUrl(value);
+      })
       // async storage get item
       setPageTitle('Home');
     }, []
@@ -45,12 +52,14 @@ export const UserProvider = ({children}) => {
         user,
         apiKey,
         Headers,
+        URL,
         TokenNotification,
         PageTitle,
         setUser,
         setHeaders,
         setApiKey,
         setTokenNotification,
+        setUrl,
         setPageTitle
       }}
     >

@@ -14,9 +14,10 @@ function ticksToMs(ticks: number | null | undefined): number {
 }
 
 export function video(movie: jellyfinApi.BaseItemDto, playback: PlaybackModel, params: string) {
+    const userContext = useContext(UserContext);
     let containers = playback.MediaSources[0]?.Container.split(',');
         return <Video
-                source= {{uri: `https://streaming.arthurcargnelli.eu/Videos/${playback?.MediaSources[0].Id}/stream.${containers[0] === 'mov' ? containers[1] : containers[0]}?${params}`}}
+                source= {{uri: `${userContext.URL}/Videos/${playback?.MediaSources[0].Id}/stream.${containers[0] === 'mov' ? containers[1] : containers[0]}?${params}`}}
                 positionMillis={Math.round(ticksToMs(movie?.UserData.PlaybackPositionTicks))}
                 rate={1.0}
                 isMuted={false}
@@ -32,10 +33,11 @@ export function video(movie: jellyfinApi.BaseItemDto, playback: PlaybackModel, p
 
 }
 function EpisodeComponent(item: jellyfinApi.BaseItemDto, navigation) {
+    const userContext = useContext(UserContext);
     const img = item?.ParentBackdropImageTags && item?.ParentBackdropImageTags.length != 0? item?.ParentBackdropImageTags[0] : item?.ImageTags['Primary']
     return (
         <View style={styles.informationMovie} key={item?.Id}> 
-            <Image source={{ uri: 'https://streaming.arthurcargnelli.eu/Items/' + item?.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ img +'&quality=90' }} style={styles.image} />
+            <Image source={{ uri: userContext.URL + '/Items/' + item?.Id + '/Images/Primary?maxHeight=300&maxWidth=200&tag='+ img +'&quality=90' }} style={styles.image} />
             <View style={styles.informationMovieText}>
                 <Text style={styles.h2}>{item?.IndexNumber}.{item?.Name}</Text>
                 <Text style={styles.h3}>{item?.Overview}</Text>
@@ -48,7 +50,7 @@ function getSeasonEpisode(item: jellyfinApi.BaseItemDto, navigation) {
     const userContext = useContext(UserContext);
     const [episode, setEpisode] = useState<jellyfinApi.BaseItemDtoQueryResult>();
     useEffect(() => {
-      fetch('https://streaming.arthurcargnelli.eu/Shows/'+item?.SeriesId+'/Episodes?seasonId=' + item?.Id + '&UserId=' + userContext.user.Id + '&Fields=ItemCounts%2CPrimaryImageAspectRatio%2CBasicSyncInfo%2CCanDelete%2CMediaSourceCount%2COverview' , {
+      fetch(userContext.URL + '/Shows/'+item?.SeriesId+'/Episodes?seasonId=' + item?.Id + '&UserId=' + userContext.user.Id + '&Fields=ItemCounts%2CPrimaryImageAspectRatio%2CBasicSyncInfo%2CCanDelete%2CMediaSourceCount%2COverview' , {
         method: 'GET', headers: userContext.Headers })
       .then( response => {
           if (response.status == 200) {
