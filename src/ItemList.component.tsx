@@ -27,11 +27,11 @@ export function itemComponent(props: jellyfinApi.BaseItemDto, navigation) {
 
 export function getItems(props: jellyfinApi.BaseItemDto, navigation) {
     const userContext = useContext(UserContext);
-    useFocusEffect(() => {
+    useFocusEffect(
       React.useCallback(() => {
         userContext.setPageTitle(props?.Name)
       }, [])
-    })
+    )
     const [data, setData] = useState<jellyfinApi.BaseItemDto[]>([]);
     const unmounted = useRef(false);
     const type= props?.CollectionType == 'movies' ? 'Movie' : 'Series' 

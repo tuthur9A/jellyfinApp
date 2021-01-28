@@ -184,9 +184,10 @@ export function getCategories(navigation) {
 
 function categories({ navigation }) {
   const userContext = useContext(UserContext);
-  useEffect(() => {
-    userContext.setPageTitle('Home')
-  }, [])
+  useFocusEffect(
+    React.useCallback(() => {
+      userContext.setPageTitle('Home')
+    }, []))
   const Movies = getCategories(navigation);
   return (
       <View style={styles.container}>
@@ -203,12 +204,6 @@ function categories({ navigation }) {
 }
 
 function Screen1({ route }) {
-  const userContext = useContext(UserContext);
-  useFocusEffect(() => {
-    React.useCallback(() => {
-      userContext.setPageTitle('Home')
-    }, [])
-  })
   const Movies = getItems(route.params.props, route.params.navigation)
   return (
       <View style={styles.container}>
